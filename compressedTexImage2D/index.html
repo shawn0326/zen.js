@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>compressedTexImage2D</title>
+    <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+    	#canvas{
+            display: block;
+    	}
+    </style>
+    <script src="js/webgl-texture-util.js"></script>
+    <script src="js/shader.js"></script>
+</head>
+<body>
+
+    <var>材质:</var>
+    <!--材质选择器-->
+    <select id="textureSelector" onchange="onTexChange()">
+        <option value ="shannon.jpg" selected="selected">jpg</option>
+        <option value ="shannon.png">png</option>
+        <option value ="shannon.gif">gif</option>
+        <option value ="shannon.bmp">bmp</option>
+        <option value ="shannon.webp">webp</option>
+
+        <option value ="shannon-dxt1.dds">dds-dxt1</option>
+        <option value ="shannon-dxt3.dds">dds-dxt3</option>
+        <option value ="shannon-dxt5.dds">dds-dxt5</option>
+
+        <option value ="shannon-pvrtc-2bpp-rgb.pvr">pvr-2bpp-rgb</option>
+        <option value ="shannon-pvrtc-2bpp-rgba.pvr">pvr-2bpp-rgba</option>
+        <option value ="shannon-pvrtc-4bpp-rgb.pvr">pvr-4bpp-rgb</option>
+        <option value ="shannon-pvrtc-4bpp-rgba.pvr">pvr-4bpp-rgba</option>
+
+        <option value ="shannon-etc1.pvr">etc1</option>
+    </select>
+
+    <var>材质数:</var>
+    <!--材质数量选择器-->
+    <select id="textureNumSelector" onchange="onTexNumChange()">
+        <option value ="1" selected="selected">1</option>
+        <option value ="50">50</option>
+        <option value ="100">100</option>
+        <option value ="500">500</option>
+        <option value ="1000">1000</option>
+        <option value ="2000">2000</option>
+    </select>
+
+    <var>图片数:</var>
+    <!--draw数选择器-->
+    <select id="drawNumSelector" onchange="onDrawNumChange()">
+        <option value ="1" selected="selected">2</option>
+        <option value ="25">50</option>
+        <option value ="50">100</option>
+        <option value ="250">500</option>
+        <option value ="500">1000</option>
+        <option value ="1000">2000</option>
+        <option value ="2500">5000</option>
+        <option value ="5000">10000</option>
+        <option value ="10000">20000</option>
+    </select>
+
+    <p>单张图片尺寸512*512</p>
+    <p>
+        <var>|fps:</var><span id="fps"></span>
+        <var>|draw:</var><span id="draw"></span>
+        <var>|face:</var><span id="vert"></span>
+    </p>
+	<canvas id="canvas" width="500" height="500"></canvas>
+    <canvas id="canvas1" width="500" height="500"></canvas>
+</body>
+<script>
+
+    function onTexChange() {
+        var selector = document.getElementById("textureSelector");
+        textureName = selector.value;
+        loadTexture();
+    }
+
+    function onTexNumChange() {
+        var selector = document.getElementById("textureNumSelector");
+        textureNum = parseInt(selector.value);
+        loadTexture();
+    }
+
+    function onDrawNumChange() {
+        var selector = document.getElementById("drawNumSelector");
+        picNum = parseInt(selector.value);
+        initVert();
+    }
+
+    var fps = document.getElementById("fps");
+    var draw = document.getElementById("draw");
+    var vert = document.getElementById("vert");
+
+	var canvas = document.getElementById("canvas");
+    var canvas1 = document.getElementById("canvas1");
+	var stageWidth = canvas.width;
+	var stageHeight = canvas.height;
+
+    var gl = canvas.getContext("webgl");
+    var context = canvas1.getContext("2d");
+//    var gl = canvas.getContext("webgl");
+    //定义着色器
+    var VSHADER_SOURCE =
+        'attribute vec4 a_Position;\n' +
+        'attribute vec2 a_TexCoord;\n' +
+        'varying vec2 v_TexCoord;\n' +
+        'uniform vec4 u_ModelMat;\n' +
+        'void main() {\n' +
+            'gl_Position = u_ModelMat + a_Position;\n' +
+            'v_TexCoord = a_TexCoord;\n' +
+        '}\n';
+    var FSHADER_SOURCE =
+        'precision mediump float;\n' +
+        'uniform sampler2D u_Sampler;\n' +
+        'varying  vec2 v_TexCoord;\n' +
+        'void main() {\n' +
+            'gl_FragColor = texture2D(u_Sampler, v_TexCoord);\n' +
+            'if(false) {\n' +
+                'discard;\n' +
+            '}\n' +
+        '}\n';
+
+    var vertices,indices,picNum = 1;
+    var vertexBuffer,indexBuffer;
+    function initVert() {
+        var _vertices = [
+            -0.5, -0.5, 0.0, 0.0, 0.0,
+            0.5, -0.5, 0.0, 1.0, 0.0,
+            0.5, 0.5, 0.0, 1.0, 1.0,
+            -0.5, 0.5, 0.0, 0.0, 1.0,
+
+            -0.9, -0.9, 0.0, 0.0, 0.0,
+            0.9, -0.9, 0.0, 1.0, 0.0,
+            0.9, 0.9, 0.0, 1.0, 1.0,
+            -0.9, 0.9, 0.0, 0.0, 1.0
+        ];
+        var _indices = [];
+        for(var i = 0; i < picNum; i++) {
+            _indices = _indices.concat([
+                4, 5, 6,
+                6, 7, 4,
+                0, 1, 2,
+                2, 3, 0
+            ]);
+        }
+
+        vertices = new Float32Array(_vertices);
+        indices = new Uint16Array(_indices);
+
+        vertexBuffer = createVertBuffer(vertices);
+        indexBuffer = createIndexBuffer(indices);
+
+//        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+//        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+        draw.innerHTML = (picNum * 2);
+
+        // attrib传递
+        var a_Position = gl.getAttribLocation(gl.program, "a_Position");
+        var a_TexCoord = gl.getAttribLocation(gl.program, "a_TexCoord");
+        var FSIZE = vertices.BYTES_PER_ELEMENT;
+        gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, FSIZE * 5, 0);
+        gl.enableVertexAttribArray(a_Position);
+        gl.vertexAttribPointer(a_TexCoord, 2, gl.FLOAT, false, FSIZE * 5, FSIZE * 3);
+        gl.enableVertexAttribArray(a_TexCoord);
+
+
+    }
+
+    function createVertBuffer(array) {
+        var vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
+        return vertexBuffer;
+    }
+
+    function createIndexBuffer(array) {
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array, gl.STATIC_DRAW);
+        return indexBuffer;
+    }
+
+    var textures = [];
+    var textureNum = 1;
+    var textureName = "shannon.jpg";
+    function loadTexture() {
+        textures = [];
+        var textureUtil = new WebGLTextureUtil(gl, true);
+        for(var i = 0; i < textureNum; i++) {
+            var name = "textures/" + textureName;
+            if(textureName == "shannon.jpg" || textureName == "shannon.png" || textureName == "shannon.bmp" || textureName == "shannon.gif" || textureName == "shannon.webp") {
+                name += ("?v=" + i);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            } else {
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            }
+            textureUtil.loadTexture(name, null, function(texture, error, stats) {
+                if (!error) {
+                    textures[i] = texture;
+                } else {
+                    //
+                }
+            });
+
+        }
+
+        // 传递texture
+        var textureId = 0;
+        var u_Sampler = gl.getUniformLocation(gl.program, "u_Sampler");
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(u_Sampler, 0);
+
+        if(textures[textureId]) {
+            gl.bindTexture(gl.TEXTURE_2D, textures[textureId]);
+        }
+        if(textureId < textures.length - 1) {
+            textureId++;
+        } else {
+            textureId = 0;
+        }
+    }
+
+    function main() {
+
+        if(!gl) {
+            console.log("failed to get rendering context for WebGL");
+        }
+
+        if(!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+            console.log("failed to initialize shader");
+        }
+
+        gl.viewport(0, 0, canvas.width, canvas.height);
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        initVert();
+        loadTexture();
+
+
+        var startTime = new Date().getTime();
+        var frameCount = 0;
+        var len = 0.0;
+        function draw() {
+
+//            if(len < 1) {
+//                gl.viewport(30, 30, 10, 10);
+//                var oldHeight = canvas.clientHeight;
+//                var oldWidth = canvas.clientWidth;
+//                console.log(oldHeight);
+//                console.log(gl.drawingBufferHeight);
+//                canvas.height = 10;
+//                canvas.width = 10;
+                gl.clear(gl.COLOR_BUFFER_BIT);
+//                gl.viewport(0, 0, canvas.width, canvas.height);
+//                canvas.width = oldWidth;
+//                canvas.height = oldHeight;
+//            }
+
+            var u_ModelMat = gl.getUniformLocation(gl.program, "u_ModelMat");
+            gl.uniform4f(u_ModelMat, len, 0.0, 0.0, 1.0);
+
+            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+            gl.uniform4f(u_ModelMat, len + 1, 0.0, 0.0, 1.0);
+            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+            frameCount++;
+            len+=0.001;
+            var endTime = new Date().getTime();
+//            var endTime = 0;
+            if(endTime - startTime > 1000) {
+                fps.innerHTML = Math.min(frameCount, 60);
+                vert.innerHTML = indices.length / 6;
+                startTime = endTime;
+                frameCount = 0;
+
+            }
+            context.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    }
+    main();
+    //            var ext = getExtension(gl, "WEBGL_compressed_texture_s3tc");
+//    function getExtension(gl, code) {
+//        var ct = gl.getExtension(code);
+//
+//        var formats = gl.getParameter(gl.COMPRESSED_TEXTURE_FORMATS);
+//        var i, dxt1Supported = false, dxt1SupportedA = false, dxt3Supported = false, dxt5Supported = false;
+//        for(i in formats) {
+//            if(formats[i] == ct.COMPRESSED_RGB_S3TC_DXT1_EXT) {
+//                dxt1Supported = true;
+//            }
+//            if(formats[i] == ct.COMPRESSED_RGBA_S3TC_DXT1_EXT) {
+//                dxt1SupportedA = true;
+//            }
+//            if(formats[i] == ct.COMPRESSED_RGBA_S3TC_DXT3_EXT) {
+//                dxt3Supported = true;
+//            }
+//            if(formats[i] == ct.COMPRESSED_RGBA_S3TC_DXT5_EXT) {
+//                dxt5Supported = true;
+//            }
+//
+//        }
+//
+//        console.log("1:" + dxt1Supported + "1a:" + dxt1SupportedA + "3:" + dxt3Supported + "5:" + dxt5Supported);
+//
+//        return ct;
+//    }
+
+
+
+</script>
+</html>
