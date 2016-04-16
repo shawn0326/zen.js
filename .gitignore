@@ -31,5 +31,4 @@ npm-debug.log
 src/tsc_config_temp.txt
 /bin
 /tsconfig.json
-/index.html
 /src/tests

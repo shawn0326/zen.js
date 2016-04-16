@@ -20,6 +20,7 @@ function getWebGLTexture(gl, src, callback) {
     var img = new Image();
     img.onload = function() {
         gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
         if (isPowerOfTwo(img.width) && isPowerOfTwo(img.height)) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
