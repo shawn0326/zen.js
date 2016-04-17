@@ -10,41 +10,24 @@
             background-color: black;
     	}
     </style>
+    <script src="src/Util.js"></script>
     <script src="src/Render.js"></script>
+    <script src="src/RenderTarget.js"></script>
     <script src="src/Shader.js"></script>
     <script src="src/Sprite.js"></script>
-    <script src="src/texture.js"></script>
 </head>
 <body>
 	<canvas id="canvas" width="600" height="600"></canvas>
 </body>
 <script>
-    var canvas = document.getElementById("canvas");
-    var gl = canvas.getContext("webgl");
-
-    // sprite shader source
-    var VSHADER_SOURCE =
-        'attribute vec2 a_Position;\n' +
-        'attribute vec2 a_TexCoord;\n' +
-        'varying vec2 v_TexCoord;\n' +
-        "uniform mat3 u_projection;\n" +
-        'void main() {\n' +
-            'gl_Position = vec4( (u_projection * vec3(a_Position, 1.0)).xy , 0.0, 1.0);\n' +
-            'v_TexCoord = a_TexCoord;\n' +
-        '}\n';
-    var FSHADER_SOURCE =
-        'precision mediump float;\n' +
-        'uniform sampler2D u_Sampler;\n' +
-        'varying  vec2 v_TexCoord;\n' +
-        'void main() {\n' +
-            'gl_FragColor = texture2D(u_Sampler, v_TexCoord);\n' +
-        '}\n';
-    // create a shader
-    var shader = new Shader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
 
     // create a render
-    var render = new Render(gl, canvas.clientWidth, canvas.clientHeight);
-    render.activateShader(gl, shader);
+    var render = new Render(document.getElementById("canvas"));
+
+    // create a shader, shis step should be hide, if this is a canvas/webgl renderer
+    var shader = new Shader(render.context);
+
+    render.activateShader(shader);
 
     // create some sprites
     var sprites = [];
@@ -56,9 +39,12 @@
         sprite.height = 100;
         sprites.push(sprite);
     }
+    var sprite_big = new Sprite();
+    sprite_big.width = 200;
+    sprite_big.height = 200;
 
     // get texture
-    var texture = getWebGLTexture(gl, "resources/hi.png", function(texture) {
+    var texture = Util.getWebGLTexture(render.context, "resources/hi.png", function(texture) {
         for(var i = 0; i < sprites.length; i++) {
             sprites[i].texture = texture;
         }
@@ -66,8 +52,14 @@
         loop();
     });
 
+    var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
+
     // frame render
     function loop() {
+
+        /*
+         * first render sprites
+         */
 
         for(var i = 0; i < sprites.length; i++) {
             var sprite = sprites[i];
@@ -76,8 +68,33 @@
             render.render(sprite);
         }
 
-        render.drawWebGL(gl);
+        /*
+         * draw to renderTarget, dont flush
+         */
 
+        render.activateRenderTarget(renderTarget);
+        // frame buffer cannot be clean auto
+        render.clear();
+        // this function makes fps low!
+        render.drawWebGL();
+
+        /*
+         * draw to root renderTarget, flush the render
+         */
+
+        render.activateRenderTarget(render.rootRenderTarget);
+        // default color buffer will be auto clean
+        // if you dont want do this, set context attribute 'preserveDrawingBuffer' to 'true'
+        // but it may cause performance problem on some platform
+        render.drawWebGL();
+        // flush draw data
+        render.flush();
+
+        var sprite = sprite_big;
+        // use renderTarget as this sprite's texture
+        sprite.texture = renderTarget.texture;
+        render.render(sprite);
+        render.drawWebGL();
         render.flush();
 
         requestAnimationFrame(loop);
