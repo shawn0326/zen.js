@@ -13,7 +13,9 @@
     <script src="src/Util.js"></script>
     <script src="src/Render.js"></script>
     <script src="src/RenderTarget.js"></script>
-    <script src="src/Shader.js"></script>
+    <script src="src/shader/Shader.js"></script>
+    <script src="src/shader/PrimitiveShader.js"></script>
+    <script src="src/shader/TextureShader.js"></script>
     <script src="src/Sprite.js"></script>
 </head>
 <body>
@@ -25,7 +27,8 @@
     var render = new Render(document.getElementById("canvas"));
 
     // create a shader, shis step should be hide, if this is a canvas/webgl renderer
-    var shader = new Shader(render.context);
+    var shader = new TextureShader(render.context);
+    var shader0 = new PrimitiveShader(render.context);
 
     render.activateShader(shader);
 
@@ -71,6 +74,7 @@
         /*
          * draw to renderTarget, dont flush
          */
+        render.activateShader(shader0);
 
         render.activateRenderTarget(renderTarget);
         // frame buffer cannot be clean auto
@@ -82,6 +86,7 @@
          * draw to root renderTarget, flush the render
          */
 
+        render.activateShader(shader);
         render.activateRenderTarget(render.rootRenderTarget);
         // default color buffer will be auto clean
         // if you dont want do this, set context attribute 'preserveDrawingBuffer' to 'true'

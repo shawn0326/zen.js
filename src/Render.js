@@ -57,19 +57,8 @@ Render.prototype._createBuffer = function() {
  **/
 Render.prototype.activateShader = function(shader) {
     var gl = this.gl;
-    gl.useProgram(shader.program);
-    // TODO this shit maybe do in a shader or object renderer?
-    var a_Position = gl.getAttribLocation(shader.program, "a_Position");
-    var a_TexCoord = gl.getAttribLocation(shader.program, "a_TexCoord");
-    var FSIZE = 4;
-    gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE * 4, 0);
-    gl.enableVertexAttribArray(a_Position);
-    gl.vertexAttribPointer(a_TexCoord, 2, gl.FLOAT, false, FSIZE * 4, FSIZE * 2);
-    gl.enableVertexAttribArray(a_TexCoord);
-    // sync uniform
-    shader.syncUniforms(gl, {
-        "projection": [this.width / 2, this.height / 2]
-    });
+    // shader do activate
+    shader.activate(gl, this.width, this.height);
 }
 
 /**
@@ -117,9 +106,12 @@ Render.prototype.drawWebGL = function() {
     // update vertices and indices, should set to gl.DINAMIC_DRAW and use bufferSubData function?
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+    // in some shader, this step is redundant
     gl.activeTexture(gl.TEXTURE0);
     for(var i = 0; i < this.currentBitch; i++) {
+        // in some shader, this step is redundant
         gl.bindTexture(gl.TEXTURE_2D, this.drawData[i]);
+
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2);
     }
 }

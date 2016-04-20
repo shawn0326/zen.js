@@ -4,27 +4,13 @@
 var Shader = function(gl, vshader, fshader) {
 
     // shader source, diffrent shader has diffrent shader source
+    // vshader and fshader source should passed by subclass
 
-    this.vshaderSource = [
-        'attribute vec2 a_Position;',
-        'attribute vec2 a_TexCoord;',
-        'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
-        'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
-            'v_TexCoord = a_TexCoord;',
-        '}'
-    ].join("\n");
+    this.vshaderSource = vshader;
 
-    this.fshaderSource = [
-        'precision mediump float;',
-        'uniform sampler2D u_Sampler;',
-        'varying  vec2 v_TexCoord;',
-        'void main() {',
-            'gl_FragColor = texture2D(u_Sampler, v_TexCoord);',
-        '}'
-    ].join("\n");
+    this.fshaderSource = fshader;
+
+    // create program
 
     this.vertexShader = this._loadShader(gl, gl.VERTEX_SHADER, this.vshaderSource);
     this.fragmentShader = this._loadShader(gl, gl.FRAGMENT_SHADER, this.fshaderSource);
@@ -34,20 +20,14 @@ var Shader = function(gl, vshader, fshader) {
 /**
  * activate this shader
  **/
-Shader.prototype.activate = function(gl) {
+Shader.prototype.activate = function(gl, width, height) {
     gl.useProgram(this.program);
-}
 
-/**
- * sync uniforms, diffrent shader maybe has diffrent uniforms
- * so this function should in subclass
- **/
-Shader.prototype.syncUniforms = function(gl, data) {
-    var u_Sampler = gl.getUniformLocation(shader.program, "u_Sampler");
-    gl.uniform1i(u_Sampler, 0);
-    var u_Projection = gl.getUniformLocation(shader.program, "u_Projection");
+    // set projection
+    // we should let every shader has a u_Projection uniform
+    var u_Projection = gl.getUniformLocation(this.program, "u_Projection");
     // TODO how to set a right matrix? origin point should be top left conner, but now bottom left
-    gl.uniform2f(u_Projection, data.projection[0], data.projection[1]);
+    gl.uniform2f(u_Projection, width / 2, height / 2);
 }
 
 /**
