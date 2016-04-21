@@ -11,12 +11,14 @@
     	}
     </style>
     <script src="src/Util.js"></script>
+    <script src="src/DrawData.js"></script>
     <script src="src/Render.js"></script>
     <script src="src/RenderTarget.js"></script>
     <script src="src/shader/Shader.js"></script>
     <script src="src/shader/PrimitiveShader.js"></script>
     <script src="src/shader/TextureShader.js"></script>
-    <script src="src/Sprite.js"></script>
+    <script src="src/display/DisplayObject.js"></script>
+    <script src="src/display/Sprite.js"></script>
 </head>
 <body>
 	<canvas id="canvas" width="600" height="600"></canvas>
@@ -34,7 +36,7 @@
 
     // create some sprites
     var sprites = [];
-    for(var i = 0; i < 2000; i++) {
+    for(var i = 0; i < 1000; i++) {
         var sprite = new Sprite();
         sprite.x = 100 + Math.random() * 300;
         sprite.y = 100 + Math.random() * 300;

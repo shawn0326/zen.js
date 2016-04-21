@@ -72,25 +72,56 @@ Render.prototype.activateShader = function(shader) {
 /**
  * not realy render, just cache draw data in this renderer
  **/
-Render.prototype.render = function(sprite) {
-    var vertices = sprite.getVertices();
+Render.prototype.render = function(displayObject) {
+
+    var vertices = displayObject.getVertices();
     for(var i = 0; i < vertices.length; i++) {
         this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
     }
-    // this can be static if just draw sprites
-    var indices = sprite.getIndices();
+
+    var indices = displayObject.getIndices();
     for(var i = 0; i < indices.length; i++) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }
 
-    this.drawData[this.currentBitch] = sprite.texture;
-    this.currentBitch++;
+    // get a drawData from pool
+    var data = DrawData.getObject();
+    // set render type
+    data.renderType = displayObject.renderType;
+
+    // could render function declared in some other file?
+    switch(data.renderType) {
+
+        case "sprite":
+
+            // sprite render type
+            data.texture = displayObject.texture;
+            this.drawData[this.currentBitch] = data;
+
+            this.currentBitch++;
+
+            break;
+
+        default:
+
+            DrawData.returnObject(data);
+
+            break;
+
+    }
+
 };
 
 /**
  * flush the render buffer data, should do in the end of the frame
  **/
 Render.prototype.flush = function() {
+
+    // return drawData object to pool
+    for(var i = 0; i < this.drawData.length; i++) {
+        DrawData.returnObject(this.drawData[i]);
+    }
+
     this.drawData.length = 0;
     this.currentBitch = 0;
 }
@@ -100,19 +131,33 @@ Render.prototype.flush = function() {
  **/
 Render.prototype.drawWebGL = function() {
     var gl = this.gl;
+
     // this should do just once
     gl.disable(gl.STENCIL_TEST);
     gl.disable(gl.DEPTH_TEST);
+
     // update vertices and indices, should set to gl.DINAMIC_DRAW and use bufferSubData function?
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
-    // in some shader, this step is redundant
-    gl.activeTexture(gl.TEXTURE0);
+
     for(var i = 0; i < this.currentBitch; i++) {
-        // in some shader, this step is redundant
-        gl.bindTexture(gl.TEXTURE_2D, this.drawData[i]);
+        var data = this.drawData[i];
+
+        switch (data.renderType) {
+            case "sprite":
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, data.texture);
+
+                break;
+            default:
+                console.warn("no render type function");
+                break;
+
+        }
 
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2);
+
     }
 }
 

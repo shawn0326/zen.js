@@ -3,16 +3,18 @@
  * in this demo, it just a picture -_-
  **/
 var Sprite = function() {
-    // bla bla ...
-    this.x = 0;
-    this.y = 0;
-    this.width = 0;
-    this.height = 0;
+
+    Sprite.superClass.constructor.call(this);
+
+    this.renderType = "sprite";
+
     // webGL texture
     this.texture = null;
+    
 }
 
-// TODO add some transform method
+// inherit
+Util.inherit(Sprite, DisplayObject);
 
 /**
  * get vertices data of this
