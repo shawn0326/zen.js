@@ -14,9 +14,9 @@ var PrimitiveShader = function(gl) {
 
     var fshaderSource = [
         'precision mediump float;',
-        "const vec4 color = vec4(1.0, 0.0, 0.0, 1.0);",
+        "uniform vec4 u_Color;",
         'void main() {',
-            'gl_FragColor = color;',
+            'gl_FragColor = u_Color;',
         '}'
     ].join("\n");
 
@@ -39,4 +39,18 @@ PrimitiveShader.prototype.activate = function(gl, width, height) {
     gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE * 4, 0);
     gl.enableVertexAttribArray(a_Position);
 
+    this.fillColor(gl, 0xFFFF00);
+}
+
+/**
+ * set color
+ **/
+PrimitiveShader.prototype.fillColor = function(gl, color) {
+    // sync uniform
+    var u_Color = gl.getUniformLocation(this.program, "u_Color");
+    var num = parseInt(color, 10);
+    var r = num / (16 * 16 * 16 * 16);
+    var g = num % (16 * 16 * 16 * 16) / (16 * 16);
+    var b = num % (16 * 16) / 1;
+    gl.uniform4f(u_Color, r / 256, g / 256, b / 256, 1.0);
 }

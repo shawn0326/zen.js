@@ -11,9 +11,9 @@
     	}
     </style>
     <script src="src/Util.js"></script>
-    <script src="src/DrawData.js"></script>
-    <script src="src/Render.js"></script>
-    <script src="src/RenderTarget.js"></script>
+    <script src="src/render/DrawData.js"></script>
+    <script src="src/render/Render.js"></script>
+    <script src="src/render/RenderTarget.js"></script>
     <script src="src/shader/Shader.js"></script>
     <script src="src/shader/PrimitiveShader.js"></script>
     <script src="src/shader/TextureShader.js"></script>
@@ -64,6 +64,7 @@
     var texture = Util.getWebGLTexture(render.context, "resources/hi.png", function(texture) {
         for(var i = 0; i < sprites.length; i++) {
             sprites[i].texture = texture;
+            sprites[i].color = 0xffa01f;
         }
         // start!!!
         loop();

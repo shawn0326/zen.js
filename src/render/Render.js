@@ -171,8 +171,7 @@ Render.prototype.drawWebGL = function() {
 
                 this.activateShader(this.primitiveShader);
 
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, data.texture);
+                this.primitiveShader.fillColor(gl, data.color);
 
                 break;
 
