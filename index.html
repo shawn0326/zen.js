@@ -19,6 +19,7 @@
     <script src="src/shader/TextureShader.js"></script>
     <script src="src/display/DisplayObject.js"></script>
     <script src="src/display/Sprite.js"></script>
+    <script src="src/display/Rect.js"></script>
 </head>
 <body>
 	<canvas id="canvas" width="600" height="600"></canvas>
@@ -29,14 +30,24 @@
     var render = new Render(document.getElementById("canvas"));
 
     // create a shader, shis step should be hide, if this is a canvas/webgl renderer
-    var shader = new TextureShader(render.context);
-    var shader0 = new PrimitiveShader(render.context);
+    // var shader = new TextureShader(render.context);
+    // var shader0 = new PrimitiveShader(render.context);
 
-    render.activateShader(shader);
+    // render.activateShader(shader);
 
     // create some sprites
     var sprites = [];
-    for(var i = 0; i < 2000; i++) {
+
+    for(var i = 0; i < 1000; i++) {
+        var sprite = new Rect();
+        sprite.x = 100 + Math.random() * 300;
+        sprite.y = 100 + Math.random() * 300;
+        sprite.width = 100;
+        sprite.height = 100;
+        sprites.push(sprite);
+    }
+
+    for(var i = 0; i < 1000; i++) {
         var sprite = new Sprite();
         sprite.x = 100 + Math.random() * 300;
         sprite.y = 100 + Math.random() * 300;
@@ -44,6 +55,7 @@
         sprite.height = 100;
         sprites.push(sprite);
     }
+
     var sprite_big = new Sprite();
     sprite_big.width = 200;
     sprite_big.height = 200;
@@ -76,7 +88,7 @@
         /*
          * draw to renderTarget, dont flush
          */
-        render.activateShader(shader0);
+        // render.activateShader(shader0);
 
         render.activateRenderTarget(renderTarget);
         // frame buffer cannot be clean auto
@@ -88,7 +100,7 @@
          * draw to root renderTarget, flush the render
          */
 
-        render.activateShader(shader);
+        // render.activateShader(shader);
         render.activateRenderTarget(render.rootRenderTarget);
         // default color buffer will be auto clean
         // if you dont want do this, set context attribute 'preserveDrawingBuffer' to 'true'

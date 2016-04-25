@@ -20,6 +20,10 @@ var Render = function(view) {
     // root render target
     this.rootRenderTarget = new RenderTarget(this.gl, this.width, this.height, true);
     this.activateRenderTarget(this.rootRenderTarget);
+
+    // shader
+    this.textureShader = new TextureShader(this.gl);
+    this.primitiveShader = new PrimitiveShader(this.gl);
 }
 
 Object.defineProperties(Render.prototype, {
@@ -102,6 +106,16 @@ Render.prototype.render = function(displayObject) {
 
             break;
 
+        case "rect":
+
+            // rect render type
+            data.color = displayObject.color;
+            this.drawData[this.currentBitch] = data;
+
+            this.currentBitch++;
+
+            break;
+
         default:
 
             DrawData.returnObject(data);
@@ -146,10 +160,22 @@ Render.prototype.drawWebGL = function() {
         switch (data.renderType) {
             case "sprite":
 
+                this.activateShader(this.textureShader);
+
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, data.texture);
 
                 break;
+
+            case "rect":
+
+                this.activateShader(this.primitiveShader);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, data.texture);
+
+                break;
+
             default:
                 console.warn("no render type function");
                 break;

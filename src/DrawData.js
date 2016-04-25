@@ -8,7 +8,7 @@ var DrawData = function() {
 
     this.texture = null;
 
-    this.rgba = [0, 0, 0, 0];
+    this.rgba = 0x000000;
 
 };
 
