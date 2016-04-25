@@ -10,7 +10,7 @@ var Sprite = function() {
 
     // webGL texture
     this.texture = null;
-    
+
 }
 
 // inherit
@@ -37,3 +37,25 @@ Sprite.prototype.getIndices = function() {
         2, 3, 0
     ];
 };
+
+/**
+ * get draw data of this
+ **/
+Sprite.prototype.getDrawData = function() {
+    var data = DrawData.getObject();
+    data.texture = this.texture;
+    return data;
+};
+
+/**
+ * prepare draw for a render
+ **/
+// Sprite.prototype.prepareDraw = function(render, data) {
+//     var gl = render.context;
+//
+//     render.activateShader(render.textureShader);
+//
+//     gl.activeTexture(gl.TEXTURE0);
+//
+//     gl.bindTexture(gl.TEXTURE_2D, data.texture);
+// };

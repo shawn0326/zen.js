@@ -88,39 +88,16 @@ Render.prototype.render = function(displayObject) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }
 
-    // get a drawData from pool
-    var data = DrawData.getObject();
-    // set render type
-    data.renderType = displayObject.renderType;
+    // get a drawData from displayObject
+    var data = displayObject.getDrawData();
 
-    // could render function declared in some other file?
-    switch(data.renderType) {
+    if(data) {
+        // set render type
+        data.renderType = displayObject.renderType;
 
-        case "sprite":
+        this.drawData[this.currentBitch] = data;
 
-            // sprite render type
-            data.texture = displayObject.texture;
-            this.drawData[this.currentBitch] = data;
-
-            this.currentBitch++;
-
-            break;
-
-        case "rect":
-
-            // rect render type
-            data.color = displayObject.color;
-            this.drawData[this.currentBitch] = data;
-
-            this.currentBitch++;
-
-            break;
-
-        default:
-
-            DrawData.returnObject(data);
-
-            break;
+        this.currentBitch++;
 
     }
 

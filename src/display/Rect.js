@@ -37,3 +37,23 @@ Rect.prototype.getIndices = function() {
         2, 3, 0
     ];
 };
+
+/**
+ * get draw data of this
+ **/
+Rect.prototype.getDrawData = function() {
+    var data = DrawData.getObject();
+    data.color = this.color;
+    return data;
+};
+
+/**
+ * prepare draw for a render
+ **/
+// Rect.prototype.prepareDraw = function(render, data) {
+//     var gl = render.context;
+//
+//     render.activateShader(render.primitiveShader);
+//
+//     render.primitiveShader.fillColor(gl, data.color);
+// };
