@@ -19,11 +19,13 @@ var Render = function(view) {
     this._createBuffer();
     // root render target
     this.rootRenderTarget = new RenderTarget(this.gl, this.width, this.height, true);
+    this.currentRenderTarget = null;
     this.activateRenderTarget(this.rootRenderTarget);
 
     // shader
     this.textureShader = new TextureShader(this.gl);
     this.primitiveShader = new PrimitiveShader(this.gl);
+    this.currentShader = null;
 }
 
 Object.defineProperties(Render.prototype, {
@@ -60,9 +62,15 @@ Render.prototype._createBuffer = function() {
  * activate a shader
  **/
 Render.prototype.activateShader = function(shader) {
+    if(this.currentShader == shader) {
+        return;
+    }
+
     var gl = this.gl;
     // shader do activate
     shader.activate(gl, this.width, this.height);
+
+    this.currentShader = shader;
 }
 
 /**
@@ -71,6 +79,7 @@ Render.prototype.activateShader = function(shader) {
  Render.prototype.activateRenderTarget = function(renderTarget) {
      var gl = this.gl;
      renderTarget.activate(gl);
+     this.currentRenderTarget = renderTarget;
  }
 
 /**
@@ -131,6 +140,8 @@ Render.prototype.drawWebGL = function() {
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
 
+    var currentTexture = null;
+
     for(var i = 0; i < this.currentBitch; i++) {
         var data = this.drawData[i];
 
@@ -139,10 +150,13 @@ Render.prototype.drawWebGL = function() {
 
                 this.activateShader(this.textureShader);
 
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, data.texture);
-
-                this.textureShader.setTransform(gl, data.transform);
+                // TODO use more texture unit
+                // TODO use a texture manager?
+                if (currentTexture != data.texture){
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, data.texture);
+                    currentTexture = data.texture;
+                }
 
                 break;
 
@@ -150,9 +164,8 @@ Render.prototype.drawWebGL = function() {
 
                 this.activateShader(this.primitiveShader);
 
+                // TODO a dirty flag
                 this.primitiveShader.fillColor(gl, data.color);
-
-                this.primitiveShader.setTransform(gl, data.transform);
 
                 break;
 
@@ -165,6 +178,8 @@ Render.prototype.drawWebGL = function() {
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2);
 
     }
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 /**

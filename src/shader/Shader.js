@@ -19,6 +19,7 @@ var Shader = function(gl, vshader, fshader) {
 
 /**
  * activate this shader
+ * TODO create a VAO object
  **/
 Shader.prototype.activate = function(gl, width, height) {
     gl.useProgram(this.program);
@@ -33,11 +34,11 @@ Shader.prototype.activate = function(gl, width, height) {
 /**
  * set transform
  **/
-Shader.prototype.setTransform = function(gl, array) {
-    // set transform
-    var u_Transform = gl.getUniformLocation(this.program, "u_Transform");
-    gl.uniformMatrix3fv(u_Transform, false, array);
-}
+// Shader.prototype.setTransform = function(gl, array) {
+//     // set transform
+//     var u_Transform = gl.getUniformLocation(this.program, "u_Transform");
+//     gl.uniformMatrix3fv(u_Transform, false, array);
+// }
 
 /**
  * @private

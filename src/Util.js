@@ -51,6 +51,8 @@ var Util = {
         };
         img.src = src;
 
+        texture.id = src;
+
         return texture;
     }
 

@@ -49,7 +49,8 @@
     //     sprites.push(sprite);
     // }
 
-    for(var i = 0; i < 2000; i++) {
+    var num = 10000;
+    for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
@@ -59,6 +60,8 @@
         // sprite.anchorY = 0.5;
         sprites.push(sprite);
     }
+
+    console.log("render object number:", num)
 
     // var sprite_big = new Sprite();
     // sprite_big.width = 50;
@@ -71,13 +74,13 @@
     var texture = Util.getWebGLTexture(render.context, "resources/hi.jpg", function(texture) {
         for(var i = 0; i < sprites.length; i++) {
             sprites[i].texture = texture;
-            sprites[i].color = 0xffa01f;
+            sprites[i].color = +("0x" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100));
         }
         // start!!!
         loop();
     });
 
-    var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
+    // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
     // frame render
     function loop() {
@@ -86,15 +89,31 @@
          * first render sprites
          */
 
-        for(var i = 0; i < sprites.length; i++) {
-            var sprite = sprites[i];
-            // sprite.x += (Math.random() * 5 - 2.5);
-            // sprite.y += (Math.random() * 5 - 2.5);
-            // sprite.scaleX += Math.random() * 0.2 - 0.1;
-            // sprite.scaleY += Math.random() * 0.2 - 0.1;
-            // sprite.rotation += 0.01;
-            render.render(sprite);
+        // for(var i = 0; i < 2000; i++) {
+        //     var sprite = sprites[i];
+        //     // sprite.x += (Math.random() * 5 - 2.5);
+        //     // sprite.y += (Math.random() * 5 - 2.5);
+        //     // sprite.scaleX += Math.random() * 0.2 - 0.1;
+        //     // sprite.scaleY += Math.random() * 0.2 - 0.1;
+        //     sprite.rotation += 0.1;
+        //     render.render(sprite);
+        // }
+        // render.drawWebGL();
+        // render.flush();
+
+        // win pixi
+        var count = 0;
+        for(var n = 0; n < num; n += 2000) {
+            for(var i = n; i < n + 2000; i++) {
+                var sprite = sprites[i];
+                sprite.rotation += 0.1;
+                render.render(sprite);
+                count++;
+            }
+            render.drawWebGL();
+            render.flush();
         }
+        // console.log(count);
 
         /*
          * draw to renderTarget, dont flush
@@ -112,13 +131,13 @@
          */
 
         // render.activateShader(shader);
-        render.activateRenderTarget(render.rootRenderTarget);
+        // render.activateRenderTarget(render.rootRenderTarget);
         // default color buffer will be auto clean
         // if you dont want do this, set context attribute 'preserveDrawingBuffer' to 'true'
         // but it may cause performance problem on some platform
-        render.drawWebGL();
+        // render.drawWebGL();
         // flush draw data
-        render.flush();
+        // render.flush();
 
         // var sprite = sprite_big;
         // use renderTarget as this sprite's texture

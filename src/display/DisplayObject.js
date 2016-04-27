@@ -18,8 +18,7 @@ var DisplayObject = function() {
     this.anchorY = 0;
 
     // a 4x4 transform matrix
-    this._transform = new Matrix();
-    this.transform = new Float32Array(9);
+    this.transform = new Matrix();
 
     this.width = 0;
     this.height = 0;
@@ -61,23 +60,11 @@ DisplayObject.prototype.getDrawData = function(render) {
  **/
 DisplayObject.prototype.getTransformMatrix = function() {
 
-    this._transform.identify();
-    this._transform.translate(-this.x - this.anchorX * this.width, -this.y - this.anchorY * this.height);
-    this._transform.rotate(this.rotation);
-    this._transform.scale(this.scaleX, this.scaleY);
-    this._transform.translate(this.x + this.anchorX * this.width, this.y + this.anchorY * this.height);
-
-    this.transform[0] = this._transform.a;
-    this.transform[1] = this._transform.b;
-    this.transform[2] = 0;
-
-    this.transform[3] = this._transform.c;
-    this.transform[4] = this._transform.d;
-    this.transform[5] = 0;
-
-    this.transform[6] = this._transform.tx;
-    this.transform[7] = this._transform.ty;
-    this.transform[8] = 1;
+    this.transform.identify();
+    this.transform.translate(-this.x - this.anchorX * this.width, -this.y - this.anchorY * this.height);
+    this.transform.rotate(this.rotation);
+    this.transform.scale(this.scaleX, this.scaleY);
+    this.transform.translate(this.x + this.anchorX * this.width, this.y + this.anchorY * this.height);
 
     return this.transform;
 }

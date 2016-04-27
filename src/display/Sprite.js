@@ -20,12 +20,27 @@ Util.inherit(Sprite, DisplayObject);
  * get vertices data of this
  **/
 Sprite.prototype.getVertices = function() {
-    return [
-        this.x, this.y, 0, 0,
-        this.x + this.width, this.y, 1, 0,
-        this.x + this.width, this.y + this.height, 1, 1,
-        this.x, this.y + this.height, 0, 1
-    ];
+    var t = this.getTransformMatrix();
+
+    var vertices = [];
+
+    var x = this.x;
+    var y = this.y;
+    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
+
+    var x = this.x + this.width;
+    var y = this.y;
+    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
+
+    var x = this.x + this.width;
+    var y = this.y + this.height;
+    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
+
+    var x = this.x;
+    var y = this.y + this.height;
+    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
+
+    return vertices;
 }
 
 /**
@@ -44,7 +59,6 @@ Sprite.prototype.getIndices = function() {
 Sprite.prototype.getDrawData = function() {
     var data = DrawData.getObject();
     data.texture = this.texture;
-    data.transform = this.getTransformMatrix();
     return data;
 };
 
