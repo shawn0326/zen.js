@@ -44,6 +44,7 @@ Rect.prototype.getIndices = function() {
 Rect.prototype.getDrawData = function() {
     var data = DrawData.getObject();
     data.color = this.color;
+    data.transform = this.getTransformMatrix();
     return data;
 };
 

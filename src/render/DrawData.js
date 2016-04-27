@@ -8,7 +8,9 @@ var DrawData = function() {
 
     this.texture = null;
 
-    this.rgba = 0x000000;
+    this.color = 0x000000;
+
+    this.transform = null;
 
 };
 
@@ -28,7 +30,8 @@ DrawData.returnObject = function(drawData) {
 
     drawData.renderType = "";
     drawData.texture = null;
-    drawData.rgba = [0, 0, 0, 0];
+    drawData.color = 0x000000;
+    drawData.transform = null;
 
     DrawData.pool.push(drawData);
 

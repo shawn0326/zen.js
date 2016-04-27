@@ -142,6 +142,8 @@ Render.prototype.drawWebGL = function() {
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, data.texture);
 
+                this.textureShader.setTransform(gl, data.transform);
+
                 break;
 
             case "rect":
@@ -149,6 +151,8 @@ Render.prototype.drawWebGL = function() {
                 this.activateShader(this.primitiveShader);
 
                 this.primitiveShader.fillColor(gl, data.color);
+
+                this.primitiveShader.setTransform(gl, data.transform);
 
                 break;
 

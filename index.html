@@ -10,6 +10,7 @@
             background-color: black;
     	}
     </style>
+    <script src="src/math/Matrix.js"></script>
     <script src="src/Util.js"></script>
     <script src="src/render/DrawData.js"></script>
     <script src="src/render/Render.js"></script>
@@ -22,7 +23,7 @@
     <script src="src/display/Rect.js"></script>
 </head>
 <body>
-	<canvas id="canvas" width="600" height="600"></canvas>
+	<canvas id="canvas" width="480" height="800"></canvas>
 </body>
 <script>
 
@@ -38,30 +39,36 @@
     // create some sprites
     var sprites = [];
 
-    for(var i = 0; i < 1000; i++) {
-        var sprite = new Rect();
-        sprite.x = 100 + Math.random() * 300;
-        sprite.y = 100 + Math.random() * 300;
-        sprite.width = 100;
-        sprite.height = 100;
-        sprites.push(sprite);
-    }
+    // for(var i = 0; i < 1000; i++) {
+    //     var sprite = new Rect();
+    //     sprite.x = 100 + Math.random() * 300;
+    //     sprite.y = 100 + Math.random() * 300;
+    //     sprite.width = 100;
+    //     sprite.height = 100;
+    //     // sprite.scaleX = 2;
+    //     sprites.push(sprite);
+    // }
 
-    for(var i = 0; i < 1000; i++) {
+    for(var i = 0; i < 2000; i++) {
         var sprite = new Sprite();
-        sprite.x = 100 + Math.random() * 300;
-        sprite.y = 100 + Math.random() * 300;
-        sprite.width = 100;
-        sprite.height = 100;
+        sprite.x = Math.random() * 480;
+        sprite.y = Math.random() * 800;
+        sprite.width = 50;
+        sprite.height = 50;
+        // sprite.anchorX = 0.5;
+        // sprite.anchorY = 0.5;
         sprites.push(sprite);
     }
 
-    var sprite_big = new Sprite();
-    sprite_big.width = 200;
-    sprite_big.height = 200;
+    // var sprite_big = new Sprite();
+    // sprite_big.width = 50;
+    // sprite_big.height = 50;
+    // sprite_big.anchorX = 0.5;
+    // sprite_big.anchorY = 0.5;
+    // sprite_big.rotation = PI / 16;
 
     // get texture
-    var texture = Util.getWebGLTexture(render.context, "resources/hi.png", function(texture) {
+    var texture = Util.getWebGLTexture(render.context, "resources/hi.jpg", function(texture) {
         for(var i = 0; i < sprites.length; i++) {
             sprites[i].texture = texture;
             sprites[i].color = 0xffa01f;
@@ -81,8 +88,11 @@
 
         for(var i = 0; i < sprites.length; i++) {
             var sprite = sprites[i];
-            sprite.x += (Math.random() * 5 - 2.5);
-            sprite.y += (Math.random() * 5 - 2.5);
+            // sprite.x += (Math.random() * 5 - 2.5);
+            // sprite.y += (Math.random() * 5 - 2.5);
+            // sprite.scaleX += Math.random() * 0.2 - 0.1;
+            // sprite.scaleY += Math.random() * 0.2 - 0.1;
+            // sprite.rotation += 0.01;
             render.render(sprite);
         }
 
@@ -91,11 +101,11 @@
          */
         // render.activateShader(shader0);
 
-        render.activateRenderTarget(renderTarget);
+        // render.activateRenderTarget(renderTarget);
         // frame buffer cannot be clean auto
-        render.clear();
+        // render.clear();
         // this function makes fps low!
-        render.drawWebGL();
+        // render.drawWebGL();
 
         /*
          * draw to root renderTarget, flush the render
@@ -110,12 +120,12 @@
         // flush draw data
         render.flush();
 
-        var sprite = sprite_big;
+        // var sprite = sprite_big;
         // use renderTarget as this sprite's texture
-        sprite.texture = renderTarget.texture;
-        render.render(sprite);
-        render.drawWebGL();
-        render.flush();
+        // sprite.texture = renderTarget.texture;
+        // render.render(sprite);
+        // render.drawWebGL();
+        // render.flush();
 
         requestAnimationFrame(loop);
 

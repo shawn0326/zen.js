@@ -44,6 +44,7 @@ Sprite.prototype.getIndices = function() {
 Sprite.prototype.getDrawData = function() {
     var data = DrawData.getObject();
     data.texture = this.texture;
+    data.transform = this.getTransformMatrix();
     return data;
 };
 

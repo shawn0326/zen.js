@@ -1,15 +1,54 @@
+
+var PI = Math.PI;
+var HalfPI = PI / 2;
+var PacPI = PI + HalfPI;
+var TwoPI = PI * 2;
+var DEG_TO_RAD = PI / 180;
+
+function cos(angle) {
+    switch(angle) {
+        case HalfPI:
+        case -PacPI:
+            return 0;
+        case PI:
+        case -PI:
+            return -1;
+        case PacPI:
+        case -HalfPI:
+            return 0;
+        default:
+            return Math.cos(angle);
+    }
+}
+
+function sin(angle) {
+    switch (angle) {
+        case HalfPI:
+        case -PacPI:
+            return 1;
+        case PI:
+        case -PI:
+            return 0;
+        case PacPI:
+        case -HalfPI:
+            return -1;
+        default:
+            return Math.sin(angle);
+    }
+}
+
 /**
  * Matrix Class
- * @param a 缩放或旋转图像时影响像素沿 x 轴定位的值。
- * @param b 旋转或倾斜图像时影响像素沿 y 轴定位的值。
- * @param c 旋转或倾斜图像时影响像素沿 x 轴定位的值。
- * @param d 缩放或旋转图像时影响像素沿 y 轴定位的值。
- * @param tx 沿 x 轴平移每个点的距离。
- * @param ty 沿 y 轴平移每个点的距离。
- * | a | b | tx| 0 |
- * | c | d | ty| 0 |
- * | 0 | 0 | 1 | 0 |
- * | 0 | 0 | 0 | 1 |
+ * Creates a new Matrix object with the specified parameters.
+ * @param a The value that affects the positioning of pixels along the x axis when scaling or rotating an image.
+ * @param b The value that affects the positioning of pixels along the y axis when rotating or skewing an image.
+ * @param c The value that affects the positioning of pixels along the x axis when rotating or skewing an image.
+ * @param d The value that affects the positioning of pixels along the y axis when scaling or rotating an image..
+ * @param tx The distance by which to translate each point along the x axis.
+ * @param ty The distance by which to translate each point along the y axis.
+ * | a | c | tx|
+ * | b | d | ty|
+ * | 0 | 0 | 1 |
  **/
 var Matrix = function(a, b, c, d, tx, ty) {
     this.a = a || 1;
@@ -41,10 +80,55 @@ Matrix.prototype.set = function(a, b, c, d, tx, ty) {
 }
 
 /*
- * 对 Matrix 对象应用旋转转换。
- * rotate() 方法将更改 Matrix 对象的 a、b、c 和 d 属性。
- * @param angle 以弧度为单位的旋转角度。
+ * Applies a rotation transformation to the Matrix object.
+ * The rotate() method alters the a, b, c, and d properties of the Matrix object.
+ * @param angle The rotation angle in radians.
  */
 Matrix.prototype.rotate = function(angle) {
+    angle = +angle; // parseFloat
+    if(angle !== 0) {
+        var u = cos(angle);
+        var v = sin(angle);
+        var ta = this.a;
+        var tb = this.b;
+        var tc = this.c;
+        var td = this.d;
+        var ttx = this.tx;
+        var tty = this.ty;
+        this.a = ta  * u - tb  * v;
+        this.b = ta  * v + tb  * u;
+        this.c = tc  * u - td  * v;
+        this.d = tc  * v + td  * u;
+        this.tx = ttx * u - tty * v;
+        this.ty = ttx * v + tty * u;
+    }
+}
 
+/**
+ * Applies a scaling transformation to the matrix. The x axis is multiplied by sx, and the y axis it is multiplied by sy.
+ * The scale() method alters the a and d properties of the Matrix object.
+ * @param sx A multiplier used to scale the object along the x axis.
+ * @param sy A multiplier used to scale the object along the y axis.
+ */
+Matrix.prototype.scale = function(sx, sy) {
+    if(sx !== 1) {
+        this.a *= sx;
+        this.c *= sx;
+        this.tx *= sx;
+    }
+    if(sy !== 1) {
+        this.b *= sy;
+        this.d *= sy;
+        this.ty *= sy;
+    }
+}
+
+/**
+ * Translates the matrix along the x and y axes, as specified by the dx and dy parameters.
+ * @param dx The amount of movement along the x axis to the right, in pixels.
+ * @param dy The amount of movement down along the y axis, in pixels.
+ */
+Matrix.prototype.translate = function(dx, dy) {
+    this.tx += dx;
+    this.ty += dy;
 }
