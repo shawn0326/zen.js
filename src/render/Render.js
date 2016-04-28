@@ -7,7 +7,12 @@ var Render = function(view) {
     // canvas
     this.view = view;
     // gl context
-    this.gl = view.getContext("webgl");
+    this.gl = view.getContext("webgl", {
+        antialias: false, // effect performance!! default false
+        // alpha: false, // effect performance, default false
+        // premultipliedAlpha: false, // effect performance, default false
+        stencil: true
+    });
     // width and height, same with the canvas
     this.width = view.clientWidth;
     this.height = view.clientHeight;
@@ -37,6 +42,11 @@ var Render = function(view) {
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
     gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    // console.log(gl.ONE)
+    // console.log(gl.SRC_ALPHA)
+    // console.log(gl.ONE_MINUS_SRC_ALPHA)
 }
 
 Object.defineProperties(Render.prototype, {
@@ -222,6 +232,6 @@ Render.prototype.drawWebGL = function() {
  **/
 Render.prototype.clear = function() {
     var gl = this.gl;
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 }
