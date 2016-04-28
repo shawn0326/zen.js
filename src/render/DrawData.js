@@ -12,6 +12,8 @@ var DrawData = function() {
 
     this.transform = null;
 
+    this.count = 0;
+
 };
 
 // draw data object pool
@@ -32,6 +34,7 @@ DrawData.returnObject = function(drawData) {
     drawData.texture = null;
     drawData.color = 0x000000;
     drawData.transform = null;
+    drawData.count = 0;
 
     DrawData.pool.push(drawData);
 

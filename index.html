@@ -72,9 +72,10 @@
 
     // get texture
     var texture = Util.getWebGLTexture(render.context, "resources/hi.jpg", function(texture) {
-        for(var i = 0; i < sprites.length; i++) {
+        for(var i = 0; i < num; i++) {
             sprites[i].texture = texture;
-            sprites[i].color = +("0x" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100));
+            // sprites[i].color = +("0x" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100));
+            sprites[i].color = 0x475846;
         }
         // start!!!
         loop();
@@ -103,16 +104,13 @@
 
         // win pixi
         var count = 0;
-        for(var n = 0; n < num; n += 2000) {
-            for(var i = n; i < n + 2000; i++) {
-                var sprite = sprites[i];
-                sprite.rotation += 0.1;
-                render.render(sprite);
-                count++;
-            }
-            render.drawWebGL();
-            render.flush();
+        for(var i = 0; i < num; i++) {
+            var sprite = sprites[i];
+            sprite.rotation += 0.1;
+            render.render(sprite);
+            count++;
         }
+        render.flush();
         // console.log(count);
 
         /*

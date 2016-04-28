@@ -15,6 +15,8 @@ var Render = function(view) {
     this.drawData = [];
     // the num of current bitch pics
     this.currentBitch = 0;
+    // the num of DrawData
+    this.currentSize = 0;
     // create vertices buffer and indices buffer
     this._createBuffer();
     // root render target
@@ -26,6 +28,15 @@ var Render = function(view) {
     this.textureShader = new TextureShader(this.gl);
     this.primitiveShader = new PrimitiveShader(this.gl);
     this.currentShader = null;
+
+    // current state
+    this.currentTexture = null;
+    this.currentColor = null;
+
+    // init webgl
+    var gl = this.gl;
+    gl.disable(gl.STENCIL_TEST);
+    gl.disable(gl.DEPTH_TEST);
 }
 
 Object.defineProperties(Render.prototype, {
@@ -87,6 +98,10 @@ Render.prototype.activateShader = function(shader) {
  **/
 Render.prototype.render = function(displayObject) {
 
+    if(this.currentBitch >= this.size) {
+        this.flush();
+    }
+
     var vertices = displayObject.getVertices();
     for(var i = 0; i < vertices.length; i++) {
         this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
@@ -97,18 +112,40 @@ Render.prototype.render = function(displayObject) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }
 
-    // get a drawData from displayObject
-    var data = displayObject.getDrawData();
+    var renderType = displayObject.renderType;
+    var data = null;
+    switch (renderType) {
+        case "sprite":
+            if(displayObject.texture != this.currentTexture) {
+                data = displayObject.getDrawData();
+                this.currentTexture = displayObject.texture;
 
-    if(data) {
-        // set render type
-        data.renderType = displayObject.renderType;
+                data.renderType = displayObject.renderType;
+                this.drawData[this.currentSize] = data;
+                this.currentSize++;
+            }
+            break;
 
-        this.drawData[this.currentBitch] = data;
+        case "rect":
+            if(displayObject.color != this.currentColor) {
+                data = displayObject.getDrawData();
+                this.currentColor = displayObject.color;
 
-        this.currentBitch++;
+                data.renderType = displayObject.renderType;
+                this.drawData[this.currentSize] = data;
+                this.currentSize++;
+            }
 
+            break;
+
+        default:
+            console.warn("no render type function");
+            break;
     }
+
+    this.currentBitch ++;
+
+    this.drawData[this.currentSize - 1].count ++;
 
 };
 
@@ -117,6 +154,8 @@ Render.prototype.render = function(displayObject) {
  **/
 Render.prototype.flush = function() {
 
+    this.drawWebGL();
+
     // return drawData object to pool
     for(var i = 0; i < this.drawData.length; i++) {
         DrawData.returnObject(this.drawData[i]);
@@ -124,6 +163,9 @@ Render.prototype.flush = function() {
 
     this.drawData.length = 0;
     this.currentBitch = 0;
+    this.currentSize = 0;
+    this.currentTexture = null;
+    this.currentColor = null;
 }
 
 /**
@@ -132,18 +174,14 @@ Render.prototype.flush = function() {
 Render.prototype.drawWebGL = function() {
     var gl = this.gl;
 
-    // this should do just once
-    gl.disable(gl.STENCIL_TEST);
-    gl.disable(gl.DEPTH_TEST);
-
     // update vertices and indices, should set to gl.DINAMIC_DRAW and use bufferSubData function?
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
 
-    var currentTexture = null;
-
-    for(var i = 0; i < this.currentBitch; i++) {
+    var offset = 0;
+    for(var i = 0; i < this.currentSize; i++) {
         var data = this.drawData[i];
+        var size = data.count;
 
         switch (data.renderType) {
             case "sprite":
@@ -151,12 +189,8 @@ Render.prototype.drawWebGL = function() {
                 this.activateShader(this.textureShader);
 
                 // TODO use more texture unit
-                // TODO use a texture manager?
-                if (currentTexture != data.texture){
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, data.texture);
-                    currentTexture = data.texture;
-                }
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, data.texture);
 
                 break;
 
@@ -164,7 +198,6 @@ Render.prototype.drawWebGL = function() {
 
                 this.activateShader(this.primitiveShader);
 
-                // TODO a dirty flag
                 this.primitiveShader.fillColor(gl, data.color);
 
                 break;
@@ -175,7 +208,9 @@ Render.prototype.drawWebGL = function() {
 
         }
 
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2);
+        gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+        offset += size * 6;
 
     }
 
