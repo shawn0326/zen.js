@@ -7,9 +7,13 @@
     <style type="text/css">
     	#canvas{
             display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
             background-color: black;
     	}
     </style>
+    <script src="src/State.js"></script>
     <script src="src/math/Matrix.js"></script>
     <script src="src/Util.js"></script>
     <script src="src/render/DrawData.js"></script>
@@ -30,26 +34,10 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
-    // create a shader, shis step should be hide, if this is a canvas/webgl renderer
-    // var shader = new TextureShader(render.context);
-    // var shader0 = new PrimitiveShader(render.context);
-
-    // render.activateShader(shader);
-
     // create some sprites
     var sprites = [];
 
-    // for(var i = 0; i < 1000; i++) {
-    //     var sprite = new Rect();
-    //     sprite.x = 100 + Math.random() * 300;
-    //     sprite.y = 100 + Math.random() * 300;
-    //     sprite.width = 100;
-    //     sprite.height = 100;
-    //     // sprite.scaleX = 2;
-    //     sprites.push(sprite);
-    // }
-
-    var num = 20000;
+    var num = 2000;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.x = Math.random() * 480;
@@ -62,13 +50,6 @@
     }
 
     console.log("render object number:", num)
-
-    // var sprite_big = new Sprite();
-    // sprite_big.width = 50;
-    // sprite_big.height = 50;
-    // sprite_big.anchorX = 0.5;
-    // sprite_big.anchorY = 0.5;
-    // sprite_big.rotation = PI / 16;
 
     // get texture
     var texture = Util.getWebGLTexture(render.context, "resources/bunny.png", function(texture) {
@@ -83,26 +64,15 @@
 
     // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
+    // fps
+    var state = new State();
+    document.body.appendChild(state.getDom());
+
     // frame render
     function loop() {
+
+        requestAnimationFrame(loop);
         // render.clear();
-
-        /*
-         * first render sprites
-         */
-
-        // for(var i = 0; i < 2000; i++) {
-        //     var sprite = sprites[i];
-        //     // sprite.x += (Math.random() * 5 - 2.5);
-        //     // sprite.y += (Math.random() * 5 - 2.5);
-        //     // sprite.scaleX += Math.random() * 0.2 - 0.1;
-        //     // sprite.scaleY += Math.random() * 0.2 - 0.1;
-        //     sprite.rotation += 0.1;
-        //     render.render(sprite);
-        // }
-        // render.drawWebGL();
-        // render.flush();
-
         // win pixi
         var count = 0;
         for(var i = 0; i < num; i++) {
@@ -112,41 +82,8 @@
             count++;
         }
         render.flush();
-        // console.log(count);
 
-        /*
-         * draw to renderTarget, dont flush
-         */
-        // render.activateShader(shader0);
-
-        // render.activateRenderTarget(renderTarget);
-        // frame buffer cannot be clean auto
-        // render.clear();
-        // this function makes fps low!
-        // render.drawWebGL();
-
-        /*
-         * draw to root renderTarget, flush the render
-         */
-
-        // render.activateShader(shader);
-        // render.activateRenderTarget(render.rootRenderTarget);
-        // default color buffer will be auto clean
-        // if you dont want do this, set context attribute 'preserveDrawingBuffer' to 'true'
-        // but it may cause performance problem on some platform
-        // render.drawWebGL();
-        // flush draw data
-        // render.flush();
-
-        // var sprite = sprite_big;
-        // use renderTarget as this sprite's texture
-        // sprite.texture = renderTarget.texture;
-        // render.render(sprite);
-        // render.drawWebGL();
-        // render.flush();
-
-        requestAnimationFrame(loop);
-
+        state.update(count);
     }
 
 </script>
