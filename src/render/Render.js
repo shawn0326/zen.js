@@ -32,6 +32,7 @@ var Render = function(view) {
     // shader
     this.textureShader = new TextureShader(this.gl);
     this.primitiveShader = new PrimitiveShader(this.gl);
+    this.colorTransformShader = new ColorTransformShader(this.gl);
     this.currentShader = null;
 
     // current state
@@ -196,7 +197,17 @@ Render.prototype.drawWebGL = function() {
         switch (data.renderType) {
             case "sprite":
 
-                this.activateShader(this.textureShader);
+                if(data.filter == "colorTransform") {
+                    this.activateShader(this.colorTransformShader);
+                    this.colorTransformShader.setMatrix(gl, [
+                        1, 0, 0, 0,
+                        0, 0.1, 0, 0,
+                        0, 0, 0.1, 0,
+                        0, 0, 0, 1
+                    ]);
+                } else {
+                    this.activateShader(this.textureShader);
+                }
 
                 // TODO use more texture unit
                 gl.activeTexture(gl.TEXTURE0);
