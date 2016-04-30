@@ -127,7 +127,7 @@ Render.prototype.render = function(displayObject) {
     var data = null;
     switch (renderType) {
         case "sprite":
-            if(displayObject.texture != this.currentTexture) {
+            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture) {
                 data = displayObject.getDrawData();
                 this.currentTexture = displayObject.texture;
 
@@ -138,7 +138,7 @@ Render.prototype.render = function(displayObject) {
             break;
 
         case "rect":
-            if(displayObject.color != this.currentColor) {
+            if(displayObject.filters.length > 0 || displayObject.color != this.currentColor) {
                 data = displayObject.getDrawData();
                 this.currentColor = displayObject.color;
 
@@ -196,15 +196,15 @@ Render.prototype.drawWebGL = function() {
 
         switch (data.renderType) {
             case "sprite":
+                if(data.filters.length > 0) {
+                    // TODO now just last filter works
+                    // render should have popFilter and pushFilter function
+                    var len = data.filters.length;
 
-                if(data.filter == "colorTransform") {
-                    this.activateShader(this.colorTransformShader);
-                    this.colorTransformShader.setMatrix(gl, [
-                        1, 0, 0, 0,
-                        0, 0.1, 0, 0,
-                        0, 0, 0.1, 0,
-                        0, 0, 0, 1
-                    ]);
+                    for(var j = 0; j < len; j++) {
+                        data.filters[j].applyFilter(render);
+                    }
+
                 } else {
                     this.activateShader(this.textureShader);
                 }

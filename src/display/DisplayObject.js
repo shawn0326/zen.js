@@ -23,6 +23,8 @@ var DisplayObject = function() {
     this.width = 0;
     this.height = 0;
 
+    this.filters = [];
+
 }
 
 // TODO add some transform method

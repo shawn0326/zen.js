@@ -59,6 +59,7 @@ Sprite.prototype.getIndices = function() {
 Sprite.prototype.getDrawData = function() {
     var data = DrawData.getObject();
     data.texture = this.texture;
+    data.filters = this.filters;
     return data;
 };
 

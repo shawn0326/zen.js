@@ -23,6 +23,8 @@
     <script src="src/shader/PrimitiveShader.js"></script>
     <script src="src/shader/TextureShader.js"></script>
     <script src="src/shader/ColorTransformShader.js"></script>
+    <script src="src/filters/AbstractFilter.js"></script>
+    <script src="src/filters/ColorTransformFilter.js"></script>
     <script src="src/display/DisplayObject.js"></script>
     <script src="src/display/Sprite.js"></script>
     <script src="src/display/Rect.js"></script>
@@ -52,12 +54,20 @@
 
     console.log("render object number:", num)
 
+    var filter = new ColorTransformFilter(render.context);
+
     // get texture
     var texture = Util.getWebGLTexture(render.context, "resources/bunny.png", function(texture) {
         for(var i = 0; i < num; i++) {
             sprites[i].texture = texture;
             // sprites[i].color = +("0x" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100));
             sprites[i].color = 0x475846;
+
+            sprites[i].filters = [filter];
+            // sprites[i].filter.setRedOffset(1);
+            // sprites[i].filter.setRedMultiplier(2);
+            // sprites[i].filter.setGreenMultiplier(2);
+            // sprites[i].filter.setBlueMultiplier(0.2);
         }
         // start!!!
         loop();
@@ -69,16 +79,25 @@
     var state = new State();
     document.body.appendChild(state.getDom());
 
+    var colorValue = 0;
     // frame render
     function loop() {
 
         requestAnimationFrame(loop);
+
+        colorValue++;
+
+        filter.matrix[0] = Math.sin(colorValue / 30);
+        filter.matrix[5] = Math.cos(colorValue / 20);
+        filter.matrix[15] = Math.cos(colorValue / 40);
+
         // render.clear();
         // win pixi
         var count = 0;
         for(var i = 0; i < num; i++) {
             var sprite = sprites[i];
             sprite.rotation += 0.1;
+
             render.render(sprite);
             count++;
         }
