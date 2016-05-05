@@ -2,8 +2,6 @@
  * Render Class
  **/
 var Render = function(view) {
-    // max num of pics the render can draw
-    this.size = 2000;
     // canvas
     this.view = view;
     // gl context
@@ -16,28 +14,22 @@ var Render = function(view) {
     // width and height, same with the canvas
     this.width = view.clientWidth;
     this.height = view.clientHeight;
-    // a array to save draw data, because we just draw once on webgl in the end of the frame
-    this.drawData = [];
-    // the num of current bitch pics
-    this.currentBitch = 0;
-    // the num of DrawData
-    this.currentSize = 0;
-    // create vertices buffer and indices buffer
-    this._createBuffer();
-    // root render target
+
+    // render target
     this.rootRenderTarget = new RenderTarget(this.gl, this.width, this.height, true);
     this.currentRenderTarget = null;
     this.activateRenderTarget(this.rootRenderTarget);
+
+    // render buffer
+    this.rootRenderBuffer = new RenderBuffer(this.gl);
+    this.currentRenderBuffer = null;
+    this.activateRenderBuffer(this.rootRenderBuffer);
 
     // shader
     this.textureShader = new TextureShader(this.gl);
     this.primitiveShader = new PrimitiveShader(this.gl);
     this.colorTransformShader = new ColorTransformShader(this.gl);
     this.currentShader = null;
-
-    // current state
-    this.currentTexture = null;
-    this.currentColor = null;
 
     // init webgl
     var gl = this.gl;
@@ -64,23 +56,6 @@ Object.defineProperties(Render.prototype, {
 });
 
 /**
- * @private
- **/
-Render.prototype._createBuffer = function() {
-    var gl = this.gl;
-    this.vertices = new Float32Array(this.size * 4 * 4);
-    this.vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    // should set to gl.DINAMIC_DRAW ?
-    gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
-    // TODO is these indices can be static
-    this.indices = new Uint16Array(this.size * 6);
-    this.indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
-}
-
-/**
  * activate a shader
  **/
 Render.prototype.activateShader = function(shader) {
@@ -89,9 +64,7 @@ Render.prototype.activateShader = function(shader) {
     }
 
     var gl = this.gl;
-    // shader do activate
     shader.activate(gl, this.width, this.height);
-
     this.currentShader = shader;
 }
 
@@ -99,65 +72,38 @@ Render.prototype.activateShader = function(shader) {
  * activate a renderTarget
  **/
  Render.prototype.activateRenderTarget = function(renderTarget) {
+     if(this.currentRenderTarget == renderTarget) {
+         return;
+     }
+
      var gl = this.gl;
      renderTarget.activate(gl);
      this.currentRenderTarget = renderTarget;
  }
+
+ /**
+  * activate a renderBuffer
+  **/
+  Render.prototype.activateRenderBuffer = function(renderBuffer) {
+      if(this.currentRenderBuffer == renderBuffer) {
+          return;
+      }
+
+      var gl = this.gl;
+      renderBuffer.activate(gl);
+      this.currentRenderBuffer = renderBuffer;
+  }
 
 /**
  * not realy render, just cache draw data in this renderer
  **/
 Render.prototype.render = function(displayObject) {
 
-    if(this.currentBitch >= this.size) {
+    if(this.currentRenderBuffer.reachedMaxSize()) {
         this.flush();
     }
 
-    var vertices = displayObject.getVertices();
-    for(var i = 0; i < vertices.length; i++) {
-        this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
-    }
-
-    var indices = displayObject.getIndices();
-    for(var i = 0; i < indices.length; i++) {
-        this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
-    }
-
-    var renderType = displayObject.renderType;
-    var data = null;
-    switch (renderType) {
-        case "sprite":
-            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture) {
-                data = displayObject.getDrawData();
-                this.currentTexture = displayObject.texture;
-
-                data.renderType = displayObject.renderType;
-                this.drawData[this.currentSize] = data;
-                this.currentSize++;
-            }
-            break;
-
-        case "rect":
-            if(displayObject.filters.length > 0 || displayObject.color != this.currentColor) {
-                data = displayObject.getDrawData();
-                this.currentColor = displayObject.color;
-
-                data.renderType = displayObject.renderType;
-                this.drawData[this.currentSize] = data;
-                this.currentSize++;
-            }
-
-            break;
-
-        default:
-            console.warn("no render type function");
-            break;
-    }
-
-    this.currentBitch ++;
-
-    this.drawData[this.currentSize - 1].count ++;
-
+    this.currentRenderBuffer.cache(displayObject);
 };
 
 /**
@@ -167,16 +113,7 @@ Render.prototype.flush = function() {
 
     this.drawWebGL();
 
-    // return drawData object to pool
-    for(var i = 0; i < this.drawData.length; i++) {
-        DrawData.returnObject(this.drawData[i]);
-    }
-
-    this.drawData.length = 0;
-    this.currentBitch = 0;
-    this.currentSize = 0;
-    this.currentTexture = null;
-    this.currentColor = null;
+    this.currentRenderBuffer.clear();
 }
 
 /**
@@ -185,13 +122,13 @@ Render.prototype.flush = function() {
 Render.prototype.drawWebGL = function() {
     var gl = this.gl;
 
-    // update vertices and indices, should set to gl.DINAMIC_DRAW and use bufferSubData function?
-    gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+    this.currentRenderBuffer.upload();
 
     var offset = 0;
-    for(var i = 0; i < this.currentSize; i++) {
-        var data = this.drawData[i];
+    var currentSize = this.currentRenderBuffer.currentSize;
+    var drawData = this.currentRenderBuffer.drawData;
+    for(var i = 0; i < currentSize; i++) {
+        var data = drawData[i];
         var size = data.count;
 
         switch (data.renderType) {

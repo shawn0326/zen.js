@@ -28,6 +28,7 @@ var RenderBuffer = function(gl) {
  * activate this buffer
  */
 RenderBuffer.prototype.activate = function() {
+    var gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 };
@@ -36,6 +37,7 @@ RenderBuffer.prototype.activate = function() {
  * upload vertex data
  */
 RenderBuffer.prototype.upload = function() {
+    var gl = this.gl;
     // upload vertices and indices, should set to gl.DINAMIC_DRAW and use bufferSubData function?
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);

@@ -12,6 +12,7 @@ gulp.task('default', function() {
         "src/render/DrawData.js",
         "src/render/Render.js",
         "src/render/RenderTarget.js",
+        "src/render/RenderBuffer.js",
         "src/shader/Shader.js",
         "src/shader/PrimitiveShader.js",
         "src/shader/TextureShader.js",
