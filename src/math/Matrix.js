@@ -50,13 +50,24 @@ function sin(angle) {
  * | b | d | ty|
  * | 0 | 0 | 1 |
  **/
-var Matrix = function(a, b, c, d, tx, ty) {
-    this.a = a || 1;
-    this.b = b || 0;
-    this.c = c || 0;
-    this.d = d || 1;
-    this.tx = tx || 0;
-    this.ty = ty || 0;
+var Matrix = function() {
+    this.a = 1;
+    this.b = 0;
+    this.c = 0;
+    this.d = 1;
+    this.tx = 0;
+    this.ty = 0;
+}
+
+Matrix._pool = [];
+
+Matrix.create = function() {
+    return matrix = Matrix._pool.pop() || new Matrix();
+}
+
+Matrix.release = function(matrix) {
+    matrix.identify();
+    Matrix._pool.push(matrix);
 }
 
 /**
@@ -131,4 +142,34 @@ Matrix.prototype.scale = function(sx, sy) {
 Matrix.prototype.translate = function(dx, dy) {
     this.tx += dx;
     this.ty += dy;
+}
+
+/**
+ * prepend matrix
+ **/
+Matrix.prototype.prepend = function(matrix) {
+    var ta = this.a;
+    var tb = this.b;
+    var tc = this.c;
+    var td = this.d;
+    var ttx = this.tx;
+    var tty = this.ty;
+    this.a = matrix.a * ta+ matrix.c * tb;
+    this.b = matrix.b * ta + matrix.d * tb;
+    this.c = matrix.a * tc + matrix.c * td;
+    this.d = matrix.b * tc + matrix.d * td;
+    this.tx = matrix.a * ttx + matrix.c * tty + matrix.tx;
+    this.ty = matrix.b * ttx + matrix.d * tty + matrix.ty;
+}
+
+/**
+ * copy matrix
+ **/
+Matrix.prototype.copy = function(matrix) {
+    this.a = matrix.a;
+    this.b = matrix.b;
+    this.c = matrix.c;
+    this.d = matrix.d;
+    this.tx = matrix.tx;
+    this.ty = matrix.ty;
 }
