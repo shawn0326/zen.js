@@ -1,8 +1,8 @@
 一个简单的WebGL渲染器
 ================================================
-Current Version: v1.0.0
+Current Version: NULL
 
- ![image](./resources/hi.png)
+ ![image](./test/resources/hi.png)
 
 经过近几年的发展，移动平台设备已经普遍支持了WebGL。但目前国内有关WebGL的资料仍然不多，大部分教程都是讲three.js的。很多WebGL教程作者认为WebGL底层接口太过繁复，不宜新手入门。的确，如果从底层接口入手的话，可能学了好几课才刚刚学会画一个三角形。如果不是专业从业人员恐怕很难对OpenGL那一套复杂的概念感兴趣。但是如果是专业人员，或者准备从2D转型到3D的工程师来说，从WebGL的底层API入手更有助于理解3D绘图概念以及计算机图形学。<br>
 WebGL是从OpenGL ES 2.0标准发展而来的（OpenGL ES是OpenGL标准的子集，适用于移动平台）。大部分概念是相似的，WebGL在某些接口和操作上进一步做了简化。<br>
@@ -12,10 +12,18 @@ WebGL是从OpenGL ES 2.0标准发展而来的（OpenGL ES是OpenGL标准的子�
 本文实现的一款小的WebGL渲染器，并不在实用上见长。而是以一个极简单的面貌，告诉想学习WebGL底层接口的同学们，一个渲染流程是怎么构成的。其实也很简单，代码并不多，一共分为四个部分：Render，Sprite，Shader，RenderTarget。Render是一个渲染器，用来把显示对象绘制在画布上，可以理解为画笔；Sprite代表一个简单的显示对象，能够显示一张纹理图片；Shader是着色器，针对不同的绘图场景或者不同的渲染需求，可能需要切换不同的着色器；RenderTarget渲染目标即为画布，这里提取出来画布类可能违背极简的原则，但这样有利于我们绘制动态纹理，例如本例中的画中画，所以暂且保留。<br>
 代码中会保留大部分说明性的注释，如果有必要，我会不断优化功能与测试相关的webGL接口，教程也会同步更新。当然主要的说明还是希望保留在代码中供大家去看。注释中的中式英语实在看不懂的话，我会加上中文的...
 
-项目地址：https://coding.net/u/shawn0326/p/webgl-examples/git
+路线图
 --
+* Texture类
+* RenderTexture类
+* 滤镜叠加功能
+* 遮罩功能
 
 联系我
 --
 * 邮箱：shawn0326@163.com
 * 微博：@谢帅shawn
+
+项目地址：
+--
+* https://coding.net/u/shawn0326/p/webgl-examples/git
