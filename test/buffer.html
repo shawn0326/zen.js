@@ -27,6 +27,7 @@
 
     // create some sprites
     var sprites = [];
+    var container = new DisplayObjectContainer();
 
     var num = 2000;
     for(var i = 0; i < num; i++) {
@@ -38,6 +39,7 @@
         // sprite.anchorX = 0.5;
         // sprite.anchorY = 0.5;
         sprites.push(sprite);
+        container.addChild(sprite);
     }
 
     // get texture
@@ -68,19 +70,12 @@
 
         buffer.clear();
         render.activateRenderBuffer(buffer);
-        var count = 0;
-        for(var i = 0; i < num; i++) {
-            var sprite = sprites[i];
-            sprite.rotation += 0.1;
 
-            render.render(sprite);
-            count++;
-        }
-        // render.activateRenderBuffer(render.rootRenderBuffer);
-        render.flush();
+        var drawCall = render.render(container);
+
         render.activateRenderBuffer(render.rootRenderBuffer);
 
-        state.update(count);
+        state.update(drawCall);
     }
 
 </script>

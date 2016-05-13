@@ -22,6 +22,7 @@ gulp.task('default', function() {
         "src/filters/ColorTransformFilter.js",
         "src/filters/GrayFilter.js",
         "src/display/DisplayObject.js",
+        "src/display/DisplayObjectContainer.js",
         "src/display/Sprite.js",
         "src/display/Rect.js"
     ])

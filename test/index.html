@@ -23,10 +23,11 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
+    var container = new DisplayObjectContainer();
     // create some sprites
     var sprites = [];
 
-    var num = 2000;
+    var num = 3000;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.x = Math.random() * 480;
@@ -36,6 +37,7 @@
         // sprite.anchorX = 0.5;
         // sprite.anchorY = 0.5;
         sprites.push(sprite);
+        container.addChild(sprite);
     }
 
     console.log("render object number:", num)
@@ -62,17 +64,10 @@
 
         requestAnimationFrame(loop);
         // render.clear();
-        // win pixi
-        var count = 0;
-        for(var i = 0; i < num; i++) {
-            var sprite = sprites[i];
-            sprite.rotation += 0.1;
-            render.render(sprite);
-            count++;
-        }
-        render.flush();
 
-        state.update(count);
+        var drawCall = render.render(container);
+
+        state.update(drawCall);
     }
 
 </script>

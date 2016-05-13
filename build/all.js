@@ -90,13 +90,24 @@ function sin(angle) {
  * | b | d | ty|
  * | 0 | 0 | 1 |
  **/
-var Matrix = function(a, b, c, d, tx, ty) {
-    this.a = a || 1;
-    this.b = b || 0;
-    this.c = c || 0;
-    this.d = d || 1;
-    this.tx = tx || 0;
-    this.ty = ty || 0;
+var Matrix = function() {
+    this.a = 1;
+    this.b = 0;
+    this.c = 0;
+    this.d = 1;
+    this.tx = 0;
+    this.ty = 0;
+}
+
+Matrix._pool = [];
+
+Matrix.create = function() {
+    return matrix = Matrix._pool.pop() || new Matrix();
+}
+
+Matrix.release = function(matrix) {
+    matrix.identify();
+    Matrix._pool.push(matrix);
 }
 
 /**
@@ -171,6 +182,54 @@ Matrix.prototype.scale = function(sx, sy) {
 Matrix.prototype.translate = function(dx, dy) {
     this.tx += dx;
     this.ty += dy;
+}
+
+/**
+ * append matrix
+ **/
+Matrix.prototype.append = function(matrix) {
+    var ta = this.a;
+    var tb = this.b;
+    var tc = this.c;
+    var td = this.d;
+    var ttx = this.tx;
+    var tty = this.ty;
+    this.a = ta * matrix.a + tc * matrix.b;
+    this.b = tb * matrix.a + td * matrix.b;
+    this.c = ta * matrix.c + tc * matrix.d;
+    this.d = tb * matrix.c + td * matrix.d;
+    this.tx = ta * matrix.tx + tc * matrix.ty + ttx;
+    this.ty = tb * matrix.tx + td * matrix.ty + tty;
+}
+
+/**
+ * prepend matrix
+ **/
+Matrix.prototype.prepend = function(matrix) {
+    var ta = this.a;
+    var tb = this.b;
+    var tc = this.c;
+    var td = this.d;
+    var ttx = this.tx;
+    var tty = this.ty;
+    this.a = matrix.a * ta+ matrix.c * tb;
+    this.b = matrix.b * ta + matrix.d * tb;
+    this.c = matrix.a * tc + matrix.c * td;
+    this.d = matrix.b * tc + matrix.d * td;
+    this.tx = matrix.a * ttx + matrix.c * tty + matrix.tx;
+    this.ty = matrix.b * ttx + matrix.d * tty + matrix.ty;
+}
+
+/**
+ * copy matrix
+ **/
+Matrix.prototype.copy = function(matrix) {
+    this.a = matrix.a;
+    this.b = matrix.b;
+    this.c = matrix.c;
+    this.d = matrix.d;
+    this.tx = matrix.tx;
+    this.ty = matrix.ty;
 }
 
 var Util = {
@@ -308,6 +367,12 @@ var Render = function(view) {
     this.colorTransformShader = new ColorTransformShader(this.gl);
     this.currentShader = null;
 
+    // transform matrix
+    this.transform = new Matrix();
+
+    // draw call count
+    this.drawCall = 0;
+
     // init webgl
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
@@ -372,15 +437,54 @@ Render.prototype.activateShader = function(shader) {
   }
 
 /**
- * not realy render, just cache draw data in this renderer
+ * render display object and flush
  **/
 Render.prototype.render = function(displayObject) {
 
+    this.drawCall = 0;
+
+    this._render(displayObject);
+
+    this.flush();
+
+    // identify transform
+    this.transform.identify();
+
+    return this.drawCall;
+
+};
+
+/**
+ * render display object
+ **/
+Render.prototype._render = function(displayObject) {
+
+    // if buffer count reached max size, auto flush
     if(this.currentRenderBuffer.reachedMaxSize()) {
         this.flush();
     }
 
-    this.currentRenderBuffer.cache(displayObject);
+    // save matrix
+    var matrix = Matrix.create();
+    matrix.copy(this.transform);
+
+    // transform, use append to add transform matrix
+    this.transform.append(displayObject.getTransformMatrix());
+
+    if(displayObject.renderType == "container") {// cache children
+        var len = displayObject.children.length;
+        for(var i = 0; i < len; i++) {
+            var child = displayObject.children[i];
+            this._render(child);
+        }
+    } else {
+        // cache display object
+        this.currentRenderBuffer.cache(displayObject, this.transform);
+    }
+
+    // restore matrix
+    this.transform.copy(matrix);
+    Matrix.release(matrix);
 };
 
 /**
@@ -446,6 +550,8 @@ Render.prototype.drawWebGL = function() {
         gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
 
         offset += size * 6;
+
+        this.drawCall++;
 
     }
 
@@ -569,15 +675,15 @@ RenderBuffer.prototype.reachedMaxSize = function() {
 /**
  * cache draw datas from a displayObject
  */
-RenderBuffer.prototype.cache = function(displayObject) {
+RenderBuffer.prototype.cache = function(displayObject, transform) {
     var gl = this.gl;
 
-    var vertices = displayObject.getVertices();
+    var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {
         this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
     }
 
-    var indices = displayObject.getIndices();
+    var indices = displayObject.getIndices(transform);
     for(var i = 0; i < indices.length; i++) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }
@@ -1044,8 +1150,6 @@ var DisplayObject = function() {
 
 }
 
-// TODO add some transform method
-
 /**
  * get vertices data of this
  **/
@@ -1080,12 +1184,52 @@ DisplayObject.prototype.getDrawData = function(render) {
 DisplayObject.prototype.getTransformMatrix = function() {
 
     this.transform.identify();
-    this.transform.translate(-this.x - this.anchorX * this.width, -this.y - this.anchorY * this.height);
-    this.transform.rotate(this.rotation);
+    this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
     this.transform.scale(this.scaleX, this.scaleY);
-    this.transform.translate(this.x + this.anchorX * this.width, this.y + this.anchorY * this.height);
+    this.transform.rotate(this.rotation);
+    this.transform.translate(this.x, this.y);
 
     return this.transform;
+}
+
+/**
+ * DisplayObject Class
+ * base class of all display objects
+ **/
+var DisplayObjectContainer = function() {
+
+    DisplayObjectContainer.superClass.constructor.call(this);
+
+    // render type of this display object
+    // every type has it own render function
+    this.renderType = "container";
+
+    this.children = [];
+
+}
+
+// inherit
+Util.inherit(DisplayObjectContainer, DisplayObject);
+
+/**
+ * add child
+ **/
+DisplayObject.prototype.addChild = function(displayObject) {
+    this.children.push(displayObject);
+}
+
+/**
+ * remove child
+ **/
+DisplayObject.prototype.removeChild = function(displayObject) {
+    for(var i = 0; i < this.children.length;) {
+        var child = this.children[i];
+        if(child == displayObject) {
+            this.children.splice(i, 1);
+            break;
+        }
+        i++;
+    }
 }
 
 /**
@@ -1109,25 +1253,25 @@ Util.inherit(Sprite, DisplayObject);
 /**
  * get vertices data of this
  **/
-Sprite.prototype.getVertices = function() {
-    var t = this.getTransformMatrix();
+Sprite.prototype.getVertices = function(transform) {
+    var t = transform;
 
     var vertices = [];
 
-    var x = this.x;
-    var y = this.y;
+    var x = 0;
+    var y = 0;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
 
-    var x = this.x + this.width;
-    var y = this.y;
+    var x = 0 + this.width;
+    var y = 0;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
 
-    var x = this.x + this.width;
-    var y = this.y + this.height;
+    var x = 0 + this.width;
+    var y = 0 + this.height;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
 
-    var x = this.x;
-    var y = this.y + this.height;
+    var x = 0;
+    var y = 0 + this.height;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
 
     return vertices;
@@ -1187,24 +1331,24 @@ Util.inherit(Rect, DisplayObject);
 /**
  * get vertices data of this
  **/
-Rect.prototype.getVertices = function() {
-    var t = this.getTransformMatrix();
+Rect.prototype.getVertices = function(transform) {
+    var t = transform;
 
     var vertices = [];
 
-    var x = this.x;
-    var y = this.y;
+    var x = 0;
+    var y = 0;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
 
-    var x = this.x + this.width;
-    var y = this.y;
+    var x = 0 + this.width;
+    var y = 0;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
 
-    var x = this.x + this.width;
+    var x = 0 + this.width;
     var y = this.y + this.height;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
 
-    var x = this.x;
+    var x = 0;
     var y = this.y + this.height;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
 

@@ -19,24 +19,24 @@ Util.inherit(Rect, DisplayObject);
 /**
  * get vertices data of this
  **/
-Rect.prototype.getVertices = function() {
-    var t = this.getTransformMatrix();
+Rect.prototype.getVertices = function(transform) {
+    var t = transform;
 
     var vertices = [];
 
-    var x = this.x;
-    var y = this.y;
+    var x = 0;
+    var y = 0;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
 
-    var x = this.x + this.width;
-    var y = this.y;
+    var x = 0 + this.width;
+    var y = 0;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
 
-    var x = this.x + this.width;
+    var x = 0 + this.width;
     var y = this.y + this.height;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
 
-    var x = this.x;
+    var x = 0;
     var y = this.y + this.height;
     vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
 

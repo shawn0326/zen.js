@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>webgl-filter</title>
+    <title>webgl-examples</title>
     <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
     	#canvas{
@@ -23,15 +23,23 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
-    // create some sprites
-    var sprites = [];
     var container = new DisplayObjectContainer();
+    // container.x = 100;
+    // container.y = 100;
+    container.width = 300;
+    container.height = 300;
+    container.anchorX = 0.5;
+    container.anchorY = 0;
+    container.x = 480 / 2;
+    container.y = 800 / 2;
+    container.scaleY = 0.5;
 
-    var num = 2000;
+    var sprites = [];
+    var num = 3000;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
-        sprite.x = Math.random() * 480;
-        sprite.y = Math.random() * 800;
+        sprite.x = Math.random() * (300 - 26);
+        sprite.y = Math.random() * (300 - 37);
         sprite.width = 26;
         sprite.height = 37;
         // sprite.anchorX = 0.5;
@@ -42,21 +50,12 @@
 
     console.log("render object number:", num)
 
-    var filter = new ColorTransformFilter(render.context);
-    var grayFilter = new GrayFilter(render.context);
-
     // get texture
     var texture = Util.getWebGLTexture(render.context, "resources/bunny.png", function(texture) {
         for(var i = 0; i < num; i++) {
             sprites[i].texture = texture;
             // sprites[i].color = +("0x" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100));
             sprites[i].color = 0x475846;
-
-            sprites[i].filters = [filter, grayFilter];
-            // sprites[i].filter.setRedOffset(1);
-            // sprites[i].filter.setRedMultiplier(2);
-            // sprites[i].filter.setGreenMultiplier(2);
-            // sprites[i].filter.setBlueMultiplier(0.2);
         }
         // start!!!
         loop();
@@ -68,19 +67,14 @@
     var state = new State();
     document.body.appendChild(state.getDom());
 
-    var colorValue = 0;
     // frame render
     function loop() {
 
         requestAnimationFrame(loop);
-
-        colorValue++;
-
-        filter.matrix[0] = Math.sin(colorValue / 30);
-        filter.matrix[5] = Math.cos(colorValue / 20);
-        filter.matrix[15] = Math.cos(colorValue / 40);
-
         // render.clear();
+
+        container.rotation += 0.01;
+        // container.x += 1;
 
         var drawCall = render.render(container);
 

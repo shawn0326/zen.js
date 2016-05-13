@@ -31,6 +31,12 @@ var Render = function(view) {
     this.colorTransformShader = new ColorTransformShader(this.gl);
     this.currentShader = null;
 
+    // transform matrix
+    this.transform = new Matrix();
+
+    // draw call count
+    this.drawCall = 0;
+
     // init webgl
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
@@ -95,15 +101,54 @@ Render.prototype.activateShader = function(shader) {
   }
 
 /**
- * not realy render, just cache draw data in this renderer
+ * render display object and flush
  **/
 Render.prototype.render = function(displayObject) {
 
+    this.drawCall = 0;
+
+    this._render(displayObject);
+
+    this.flush();
+
+    // identify transform
+    this.transform.identify();
+
+    return this.drawCall;
+
+};
+
+/**
+ * render display object
+ **/
+Render.prototype._render = function(displayObject) {
+
+    // if buffer count reached max size, auto flush
     if(this.currentRenderBuffer.reachedMaxSize()) {
         this.flush();
     }
 
-    this.currentRenderBuffer.cache(displayObject);
+    // save matrix
+    var matrix = Matrix.create();
+    matrix.copy(this.transform);
+
+    // transform, use append to add transform matrix
+    this.transform.append(displayObject.getTransformMatrix());
+
+    if(displayObject.renderType == "container") {// cache children
+        var len = displayObject.children.length;
+        for(var i = 0; i < len; i++) {
+            var child = displayObject.children[i];
+            this._render(child);
+        }
+    } else {
+        // cache display object
+        this.currentRenderBuffer.cache(displayObject, this.transform);
+    }
+
+    // restore matrix
+    this.transform.copy(matrix);
+    Matrix.release(matrix);
 };
 
 /**
@@ -169,6 +214,8 @@ Render.prototype.drawWebGL = function() {
         gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
 
         offset += size * 6;
+
+        this.drawCall++;
 
     }
 

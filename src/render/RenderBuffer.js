@@ -53,15 +53,15 @@ RenderBuffer.prototype.reachedMaxSize = function() {
 /**
  * cache draw datas from a displayObject
  */
-RenderBuffer.prototype.cache = function(displayObject) {
+RenderBuffer.prototype.cache = function(displayObject, transform) {
     var gl = this.gl;
 
-    var vertices = displayObject.getVertices();
+    var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {
         this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
     }
 
-    var indices = displayObject.getIndices();
+    var indices = displayObject.getIndices(transform);
     for(var i = 0; i < indices.length; i++) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }

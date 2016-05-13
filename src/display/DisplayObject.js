@@ -27,8 +27,6 @@ var DisplayObject = function() {
 
 }
 
-// TODO add some transform method
-
 /**
  * get vertices data of this
  **/
@@ -63,10 +61,10 @@ DisplayObject.prototype.getDrawData = function(render) {
 DisplayObject.prototype.getTransformMatrix = function() {
 
     this.transform.identify();
-    this.transform.translate(-this.x - this.anchorX * this.width, -this.y - this.anchorY * this.height);
-    this.transform.rotate(this.rotation);
+    this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
     this.transform.scale(this.scaleX, this.scaleY);
-    this.transform.translate(this.x + this.anchorX * this.width, this.y + this.anchorY * this.height);
+    this.transform.rotate(this.rotation);
+    this.transform.translate(this.x, this.y);
 
     return this.transform;
 }

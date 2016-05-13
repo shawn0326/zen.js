@@ -145,6 +145,24 @@ Matrix.prototype.translate = function(dx, dy) {
 }
 
 /**
+ * append matrix
+ **/
+Matrix.prototype.append = function(matrix) {
+    var ta = this.a;
+    var tb = this.b;
+    var tc = this.c;
+    var td = this.d;
+    var ttx = this.tx;
+    var tty = this.ty;
+    this.a = ta * matrix.a + tc * matrix.b;
+    this.b = tb * matrix.a + td * matrix.b;
+    this.c = ta * matrix.c + tc * matrix.d;
+    this.d = tb * matrix.c + td * matrix.d;
+    this.tx = ta * matrix.tx + tc * matrix.ty + ttx;
+    this.ty = tb * matrix.tx + td * matrix.ty + tty;
+}
+
+/**
  * prepend matrix
  **/
 Matrix.prototype.prepend = function(matrix) {
