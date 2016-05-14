@@ -38,9 +38,12 @@ RenderBuffer.prototype.activate = function() {
  */
 RenderBuffer.prototype.upload = function() {
     var gl = this.gl;
-    // upload vertices and indices, should set to gl.DINAMIC_DRAW and use bufferSubData function?
-    gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+    // upload vertices and indices, i found that bufferSubData performance bad than bufferData, is that right?
+    var vertices_view = this.vertices.subarray(0, this.currentBitch * 4 * 4);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
+    // TODO indices should upload just once
+    var indices_view = this.indices.subarray(0, this.currentBitch * 6);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
 };
 
 /**
