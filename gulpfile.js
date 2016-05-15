@@ -10,6 +10,7 @@ gulp.task('default', function() {
         "src/math/Matrix.js",
         "src/Util.js",
         "src/render/DrawData.js",
+        "src/render/Texture.js",
         "src/render/Render.js",
         "src/render/RenderTarget.js",
         "src/render/RenderBuffer.js",

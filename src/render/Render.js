@@ -178,22 +178,28 @@ Render.prototype.drawWebGL = function() {
 
         switch (data.renderType) {
             case "sprite":
-                if(data.filters.length > 0) {
-                    // TODO now just last filter works
-                    // render should have popFilter and pushFilter function
-                    var len = data.filters.length;
 
-                    for(var j = 0; j < len; j++) {
-                        data.filters[j].applyFilter(render);
+                // is texture not loaded skip render
+                if(data.texture.loaded) {
+                    if(data.filters.length > 0) {
+                        // TODO now just last filter works
+                        // render should have popFilter and pushFilter function
+                        var len = data.filters.length;
+
+                        for(var j = 0; j < len; j++) {
+                            data.filters[j].applyFilter(render);
+                        }
+
+                    } else {
+                        this.activateShader(this.textureShader);
                     }
 
-                } else {
-                    this.activateShader(this.textureShader);
-                }
+                    // TODO use more texture unit
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, data.texture.webGLTexture);
 
-                // TODO use more texture unit
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, data.texture);
+                    gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+                }
 
                 break;
 
@@ -203,6 +209,8 @@ Render.prototype.drawWebGL = function() {
 
                 this.primitiveShader.fillColor(gl, data.color);
 
+                gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
                 break;
 
             default:
@@ -210,8 +218,6 @@ Render.prototype.drawWebGL = function() {
                 break;
 
         }
-
-        gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
 
         offset += size * 6;
 

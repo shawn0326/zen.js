@@ -239,50 +239,6 @@ var Util = {
         subClass.superClass = superClass.prototype;
         subClass.prototype = new Util.emptyConstructor;
         subClass.prototype.constructor = subClass;
-    },
-    /**
-     * If the image size is power of 2
-     */
-    isPowerOfTwo: function(n) {
-        return (n & (n - 1)) === 0;
-    },
-    /**
-     * Get a webGL texture
-     * @param gl {Object} webGL context
-     * @param src {String} image src
-     * @param callback {Function} callback function
-     */
-    getWebGLTexture: function(gl, src, callback) {
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-
-        var img = new Image();
-        img.onload = function() {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-            if (Util.isPowerOfTwo(img.width) && Util.isPowerOfTwo(img.height)) {
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-                gl.generateMipmap(gl.TEXTURE_2D);
-            } else {
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            }
-            if(callback) {
-                callback(texture);
-            }
-            // gl.bindTexture(gl.TEXTURE_2D, null);
-        };
-        img.src = src;
-
-        texture.id = src;
-
-        return texture;
     }
 
 }
@@ -328,6 +284,77 @@ DrawData.returnObject = function(drawData) {
     DrawData.pool.push(drawData);
 
 };
+
+/**
+ * If the image size is power of 2
+ */
+function isPowerOfTwo(n) {
+    return (n & (n - 1)) === 0;
+}
+
+/**
+ * Texture Class
+ * webgl texture
+ **/
+var Texture = function(gl, src) {
+
+    this.gl = gl;
+
+    this.width = 0;
+    this.height = 0;
+
+    this.baseTexture = new Image();
+
+    this.webGLTexture = gl.createTexture();
+
+    this.loaded = false;
+
+    if(src) {
+        this.loadFromSrc(src);
+    }
+};
+
+/**
+ * base texture loaded, create webgl texture, get width and height
+ *
+ */
+Texture.prototype.loadFromSrc = function(src) {
+    this.baseTexture.src = src;
+    this.baseTexture.onload = this.onBaseTextureLoaded.bind(this);
+}
+
+/**
+ * base texture loaded, create webgl texture, get width and height
+ *
+ */
+Texture.prototype.onBaseTextureLoaded = function() {
+    var gl = this.gl;
+
+    gl.bindTexture(gl.TEXTURE_2D, this.webGLTexture);
+
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.baseTexture);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    if (isPowerOfTwo(this.baseTexture.width) && isPowerOfTwo(this.baseTexture.height)) {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+
+    this.width = this.baseTexture.width;
+    this.height = this.baseTexture.height;
+
+    this.loaded = true;
+}
+
 /**
  * Render Class
  **/
@@ -508,22 +535,28 @@ Render.prototype.drawWebGL = function() {
 
         switch (data.renderType) {
             case "sprite":
-                if(data.filters.length > 0) {
-                    // TODO now just last filter works
-                    // render should have popFilter and pushFilter function
-                    var len = data.filters.length;
 
-                    for(var j = 0; j < len; j++) {
-                        data.filters[j].applyFilter(render);
+                // is texture not loaded skip render
+                if(data.texture.loaded) {
+                    if(data.filters.length > 0) {
+                        // TODO now just last filter works
+                        // render should have popFilter and pushFilter function
+                        var len = data.filters.length;
+
+                        for(var j = 0; j < len; j++) {
+                            data.filters[j].applyFilter(render);
+                        }
+
+                    } else {
+                        this.activateShader(this.textureShader);
                     }
 
-                } else {
-                    this.activateShader(this.textureShader);
-                }
+                    // TODO use more texture unit
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, data.texture.webGLTexture);
 
-                // TODO use more texture unit
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, data.texture);
+                    gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+                }
 
                 break;
 
@@ -533,6 +566,8 @@ Render.prototype.drawWebGL = function() {
 
                 this.primitiveShader.fillColor(gl, data.color);
 
+                gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
                 break;
 
             default:
@@ -540,8 +575,6 @@ Render.prototype.drawWebGL = function() {
                 break;
 
         }
-
-        gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
 
         offset += size * 6;
 

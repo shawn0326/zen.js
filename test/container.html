@@ -23,6 +23,10 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
+    var texture = new Texture(render.context, "resources/bunny.png");
+
+    // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
+
     var container = new DisplayObjectContainer();
     // container.x = 100;
     // container.y = 100;
@@ -38,6 +42,8 @@
     var num = 3000;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
+        sprite.texture = texture;
+        // sprite.color = 0x475846;
         sprite.x = Math.random() * (300 - 26);
         sprite.y = Math.random() * (300 - 37);
         sprite.width = 26;
@@ -49,19 +55,6 @@
     }
 
     console.log("render object number:", num)
-
-    // get texture
-    var texture = Util.getWebGLTexture(render.context, "resources/bunny.png", function(texture) {
-        for(var i = 0; i < num; i++) {
-            sprites[i].texture = texture;
-            // sprites[i].color = +("0x" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100) + "" + Math.round(Math.random() * 100));
-            sprites[i].color = 0x475846;
-        }
-        // start!!!
-        loop();
-    });
-
-    // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
     // fps
     var state = new State();
@@ -80,6 +73,9 @@
 
         state.update(drawCall);
     }
+
+    // start!!!
+    loop();
 
 </script>
 </html>
