@@ -388,9 +388,6 @@ var Render = function(view) {
     this.colorTransformShader = new ColorTransformShader(this.gl);
     this.currentShader = null;
 
-    // transform matrix
-    this.transform = new Matrix();
-
     // draw call count
     this.drawCall = 0;
 
@@ -439,8 +436,7 @@ Render.prototype.activateShader = function(shader) {
          return;
      }
 
-     var gl = this.gl;
-     renderTarget.activate(gl);
+     renderTarget.activate();
      this.currentRenderTarget = renderTarget;
  }
 
@@ -452,8 +448,7 @@ Render.prototype.activateShader = function(shader) {
           return;
       }
 
-      var gl = this.gl;
-      renderBuffer.activate(gl);
+      renderBuffer.activate();
       this.currentRenderBuffer = renderBuffer;
   }
 
@@ -469,7 +464,7 @@ Render.prototype.render = function(displayObject) {
     this.flush();
 
     // identify transform
-    this.transform.identify();
+    this.currentRenderTarget.transform.identify();
 
     return this.drawCall;
 
@@ -486,11 +481,12 @@ Render.prototype._render = function(displayObject) {
     }
 
     // save matrix
+    var transform = this.currentRenderTarget.transform;
     var matrix = Matrix.create();
-    matrix.copy(this.transform);
+    matrix.copy(transform);
 
     // transform, use append to add transform matrix
-    this.transform.append(displayObject.getTransformMatrix());
+    this.currentRenderTarget.transform.append(displayObject.getTransformMatrix());
 
     if(displayObject.renderType == "container") {// cache children
         var len = displayObject.children.length;
@@ -500,11 +496,11 @@ Render.prototype._render = function(displayObject) {
         }
     } else {
         // cache display object
-        this.currentRenderBuffer.cache(displayObject, this.transform);
+        this.currentRenderBuffer.cache(displayObject, transform);
     }
 
     // restore matrix
-    this.transform.copy(matrix);
+    transform.copy(matrix);
     Matrix.release(matrix);
 };
 
@@ -589,21 +585,28 @@ Render.prototype.drawWebGL = function() {
  * clear current renderTarget
  **/
 Render.prototype.clear = function() {
-    var gl = this.gl;
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    this.currentRenderTarget.clear();
 }
 
 /**
  * RenderTarget Class
  **/
 var RenderTarget = function(gl, width, height, root) {
+    this.gl = gl;
     // boolean type, if root is false, bind frame buffer
     this.root = root;
     // frame buffer
     this.frameBuffer = null;
     // the texture
     this.texture = null;
+    // size
+    this.width = width;
+    this.height = height;
+    // transform matrix
+    // change render target will also has a new transform space
+    this.transform = new Matrix();
+    // clear color
+    this.clearColor = [0.0, 0.0, 0.0, 0.0];
 
     if(!this.root) {
 
@@ -631,6 +634,59 @@ var RenderTarget = function(gl, width, height, root) {
     }
 }
 
+RenderTarget._pool = [];
+
+RenderTarget.create = function(gl, width, height) {
+    var renderTarget = RenderTarget._pool.pop();
+    if(renderTarget) {
+        if(renderTarget.width == width && renderTarget.height == height) {
+            renderTarget.clear();// if size is right, just clear
+        } else {
+            renderTarget.resize(width, height);
+        }
+
+        renderTarget.transform.identify();
+
+        return renderTarget;
+    } else {
+        return new RenderTarget(gl, width, height);
+    }
+}
+
+RenderTarget.release = function(renderTarget) {
+    // should resize to save memory?
+    // renderTarget.resize(3, 3);
+    RenderTarget._pool.push(renderTarget);
+}
+
+// TODO clear function
+
+/**
+ * resize render target
+ * so we can recycling a render buffer
+ */
+RenderTarget.prototype.resize = function(width, height) {
+    var gl = this.gl;
+    // resize texture
+    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);// upload null will clear this texture!!!
+    gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+/**
+ * clear render target
+ */
+RenderTarget.prototype.clear = function(bind) {
+    var gl = this.gl;
+
+    if(bind) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+    }
+
+    gl.clearColor(this.clearColor[0], this.clearColor[1], this.clearColor[2], this.clearColor[3]);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
 /**
  * TODO Binds the stencil buffer.
  *
@@ -643,9 +699,19 @@ RenderTarget.prototype.attachStencilBuffer = function() {
  * Binds the buffers
  *
  */
-RenderTarget.prototype.activate = function(gl) {
+RenderTarget.prototype.activate = function() {
+    var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 };
+
+/**
+ * destroy
+ */
+RenderTarget.prototype.destroy = function() {
+    // TODO destroy
+};
+
+
 
 /**
  * RenderBuffer Class
@@ -757,7 +823,7 @@ RenderBuffer.prototype.cache = function(displayObject, transform) {
 /**
  * clear draw datas
  */
-RenderBuffer.prototype.clear = function(gl) {
+RenderBuffer.prototype.clear = function() {
     // return drawData object to pool
     for(var i = 0; i < this.drawData.length; i++) {
         DrawData.returnObject(this.drawData[i]);

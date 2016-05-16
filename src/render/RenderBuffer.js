@@ -108,7 +108,7 @@ RenderBuffer.prototype.cache = function(displayObject, transform) {
 /**
  * clear draw datas
  */
-RenderBuffer.prototype.clear = function(gl) {
+RenderBuffer.prototype.clear = function() {
     // return drawData object to pool
     for(var i = 0; i < this.drawData.length; i++) {
         DrawData.returnObject(this.drawData[i]);

@@ -31,9 +31,6 @@ var Render = function(view) {
     this.colorTransformShader = new ColorTransformShader(this.gl);
     this.currentShader = null;
 
-    // transform matrix
-    this.transform = new Matrix();
-
     // draw call count
     this.drawCall = 0;
 
@@ -82,8 +79,7 @@ Render.prototype.activateShader = function(shader) {
          return;
      }
 
-     var gl = this.gl;
-     renderTarget.activate(gl);
+     renderTarget.activate();
      this.currentRenderTarget = renderTarget;
  }
 
@@ -95,8 +91,7 @@ Render.prototype.activateShader = function(shader) {
           return;
       }
 
-      var gl = this.gl;
-      renderBuffer.activate(gl);
+      renderBuffer.activate();
       this.currentRenderBuffer = renderBuffer;
   }
 
@@ -112,7 +107,7 @@ Render.prototype.render = function(displayObject) {
     this.flush();
 
     // identify transform
-    this.transform.identify();
+    this.currentRenderTarget.transform.identify();
 
     return this.drawCall;
 
@@ -129,11 +124,12 @@ Render.prototype._render = function(displayObject) {
     }
 
     // save matrix
+    var transform = this.currentRenderTarget.transform;
     var matrix = Matrix.create();
-    matrix.copy(this.transform);
+    matrix.copy(transform);
 
     // transform, use append to add transform matrix
-    this.transform.append(displayObject.getTransformMatrix());
+    this.currentRenderTarget.transform.append(displayObject.getTransformMatrix());
 
     if(displayObject.renderType == "container") {// cache children
         var len = displayObject.children.length;
@@ -143,11 +139,11 @@ Render.prototype._render = function(displayObject) {
         }
     } else {
         // cache display object
-        this.currentRenderBuffer.cache(displayObject, this.transform);
+        this.currentRenderBuffer.cache(displayObject, transform);
     }
 
     // restore matrix
-    this.transform.copy(matrix);
+    transform.copy(matrix);
     Matrix.release(matrix);
 };
 
@@ -232,7 +228,5 @@ Render.prototype.drawWebGL = function() {
  * clear current renderTarget
  **/
 Render.prototype.clear = function() {
-    var gl = this.gl;
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    this.currentRenderTarget.clear();
 }
