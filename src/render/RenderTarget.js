@@ -27,20 +27,10 @@ var RenderTarget = function(gl, width, height, root) {
             create a texture and bind it attach it to the framebuffer..
          */
 
-        this.texture = gl.createTexture();
-
-        gl.bindTexture(gl.TEXTURE_2D,  this.texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-        // set the scale properties of the texture..
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        this.texture = new RenderTexture(gl, width, height);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture.glTexture, 0);
     }
 }
 
@@ -76,11 +66,8 @@ RenderTarget.release = function(renderTarget) {
  * so we can recycling a render buffer
  */
 RenderTarget.prototype.resize = function(width, height) {
-    var gl = this.gl;
     // resize texture
-    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);// upload null will clear this texture!!!
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    this.texture.resize(width, height, true);
 }
 
 /**

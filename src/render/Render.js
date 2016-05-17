@@ -176,7 +176,7 @@ Render.prototype.drawWebGL = function() {
             case "sprite":
 
                 // is texture not loaded skip render
-                if(data.texture.loaded) {
+                if(data.texture && data.texture.isInit) {
                     if(data.filters.length > 0) {
                         // TODO now just last filter works
                         // render should have popFilter and pushFilter function
@@ -192,7 +192,7 @@ Render.prototype.drawWebGL = function() {
 
                     // TODO use more texture unit
                     gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, data.texture.webGLTexture);
+                    gl.bindTexture(gl.TEXTURE_2D, data.texture.glTexture);
 
                     gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
                 }

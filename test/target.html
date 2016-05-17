@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>target</title>
+    <title>render target</title>
     <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
     	#canvas{
@@ -23,18 +23,18 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
-    var texture = new Texture(render.context, "resources/bunny.png");
+    // var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 
     // create some sprites
     var sprites = [];
     var container = new DisplayObjectContainer();
-    container.width = render.width;
-    container.height = render.height;
+    container.width = 300;
+    container.height = 300;
 
     var num = 2000;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
-        sprite.texture = texture;
+        // sprite.texture = texture;
         // sprite.color = 0x475846;
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
@@ -50,47 +50,48 @@
     var state = new State();
     document.body.appendChild(state.getDom());
 
-    var sprite = new Sprite();
-    sprite.width = container.width;
-    sprite.height = container.height;
-    var texture = new Texture(render.context);
-    sprite.texture = texture;
+    var _sprite = new Sprite();
+    _sprite.width = container.width;
+    _sprite.height = container.height;
+
+    // if you use a render target, you must make sure the texture is inited
+    // so here we use fromImage (not fromSrc) to create texture
+    var image = new Image();
+    image.src = "resources/bunny.png";
+    image.onload = function() {
+        var texture = Texture.fromImage(render.context, image);
+
+        for(var i = 0; i < num; i++) {
+            var sprite = sprites[i];
+            sprite.texture = texture;
+        }
+
+        // var renderTarget = RenderTarget.create(render.context, container.width, container.height);
+        var renderTarget = new RenderTarget(render.context, container.width, container.height);
+
+        render.activateRenderTarget(renderTarget);
+
+        render.render(container);
+
+        render.activateRenderTarget(render.rootRenderTarget);
+
+        _sprite.texture = renderTarget.texture;
+
+        // start!!!
+        loop();
+    }
 
     // frame render
-    var count = 0;
-
     function loop() {
-
-        // render texture and cache as bitmap
-        if(count  > 100 && count < 10000) {
-            var renderTarget = RenderTarget.create(render.context, container.width, container.height);
-
-            render.activateRenderTarget(renderTarget);
-
-            render.render(container);
-
-            render.activateRenderTarget(render.rootRenderTarget);
-
-            texture.webGLTexture = renderTarget.texture;
-
-            texture.loaded = true;
-
-            count = 10000;
-        } else {
-            count++;
-        }
 
         requestAnimationFrame(loop);
 
-        var drawCall = render.render(sprite);
+        var drawCall = render.render(_sprite);
 
         // RenderTarget.release(renderTarget);
 
         state.update(drawCall);
     }
-
-    // start!!!
-    loop();
 
 </script>
 </html>

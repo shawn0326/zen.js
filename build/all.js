@@ -296,65 +296,113 @@ function isPowerOfTwo(n) {
  * Texture Class
  * webgl texture
  **/
-var Texture = function(gl, src) {
-
+var Texture = function(gl) {
     this.gl = gl;
 
     this.width = 0;
     this.height = 0;
 
-    this.baseTexture = new Image();
+    this.isInit = false;
 
-    this.webGLTexture = gl.createTexture();
+    this.glTexture = gl.createTexture();
 
-    this.loaded = false;
+    // set webgl texture
+    gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
 
-    if(src) {
-        this.loadFromSrc(src);
-    }
-};
-
-/**
- * base texture loaded, create webgl texture, get width and height
- *
- */
-Texture.prototype.loadFromSrc = function(src) {
-    this.baseTexture.src = src;
-    this.baseTexture.onload = this.onBaseTextureLoaded.bind(this);
-}
-
-/**
- * base texture loaded, create webgl texture, get width and height
- *
- */
-Texture.prototype.onBaseTextureLoaded = function() {
-    var gl = this.gl;
-
-    gl.bindTexture(gl.TEXTURE_2D, this.webGLTexture);
-
+    // this can set just as a global props?
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.baseTexture);
-
+    // set repeat
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    if (isPowerOfTwo(this.baseTexture.width) && isPowerOfTwo(this.baseTexture.height)) {
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
-    } else {
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    }
-
-    this.width = this.baseTexture.width;
-    this.height = this.baseTexture.height;
-
-    this.loaded = true;
+    // a mipmap optimize
+    // if (isPowerOfTwo(this.glTexture.width) && isPowerOfTwo(this.glTexture.height)) {
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    //     gl.generateMipmap(gl.TEXTURE_2D);
+    // } else {
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // }
 }
 
+/**
+ * uploadImage
+ * upload a image for this texture
+ */
+Texture.prototype.uploadImage = function(image, bind) {
+    var gl = this.gl;
+
+    if(bind) {
+        gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
+    }
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+    this.width = image.width;
+    this.height = image.height;
+
+    this.isInit = true;
+}
+
+/**
+ * get a texture from a image
+ */
+Texture.fromImage = function(gl, image) {
+    var texture = new Texture(gl);
+    texture.uploadImage(image);
+    return texture;
+}
+
+/**
+ * get texture from src
+ * texture maybe not init util image is loaded
+ */
+Texture.fromSrc = function(gl, src) {
+    var texture = new Texture(gl);
+
+    var image = new Image();
+    image.src = src;
+    image.onload = function() {
+        texture.uploadImage(image, true);
+    }
+
+    return texture;
+}
+
+/**
+ * RenderTexture Class
+ * for render target to draw into, can be render as a texture
+ **/
+var RenderTexture = function(gl, width, height) {
+
+    RenderTexture.superClass.constructor.call(this, gl);
+
+    if(width && height) {
+        this.resize(width, height);
+    }
+}
+
+// inherit
+Util.inherit(RenderTexture, Texture);
+
+/**
+ * resize this render texture
+ * this function will clear color of this texture
+ */
+RenderTexture.prototype.resize = function(width, height, bind) {
+    var gl = this.gl;
+
+    if(bind) {
+        gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
+    }
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+    this.isInit = true;
+}
 /**
  * Render Class
  **/
@@ -533,7 +581,7 @@ Render.prototype.drawWebGL = function() {
             case "sprite":
 
                 // is texture not loaded skip render
-                if(data.texture.loaded) {
+                if(data.texture && data.texture.isInit) {
                     if(data.filters.length > 0) {
                         // TODO now just last filter works
                         // render should have popFilter and pushFilter function
@@ -549,7 +597,7 @@ Render.prototype.drawWebGL = function() {
 
                     // TODO use more texture unit
                     gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, data.texture.webGLTexture);
+                    gl.bindTexture(gl.TEXTURE_2D, data.texture.glTexture);
 
                     gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
                 }
@@ -617,20 +665,10 @@ var RenderTarget = function(gl, width, height, root) {
             create a texture and bind it attach it to the framebuffer..
          */
 
-        this.texture = gl.createTexture();
-
-        gl.bindTexture(gl.TEXTURE_2D,  this.texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-        // set the scale properties of the texture..
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        this.texture = new RenderTexture(gl, width, height);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture.glTexture, 0);
     }
 }
 
@@ -666,11 +704,8 @@ RenderTarget.release = function(renderTarget) {
  * so we can recycling a render buffer
  */
 RenderTarget.prototype.resize = function(width, height) {
-    var gl = this.gl;
     // resize texture
-    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);// upload null will clear this texture!!!
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    this.texture.resize(width, height, true);
 }
 
 /**
@@ -788,7 +823,7 @@ RenderBuffer.prototype.cache = function(displayObject, transform) {
     var data = null;
     switch (renderType) {
         case "sprite":
-            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture) {
+            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture || !displayObject.texture) {
                 data = displayObject.getDrawData();
                 this.currentTexture = displayObject.texture;
 

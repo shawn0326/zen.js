@@ -73,7 +73,7 @@ RenderBuffer.prototype.cache = function(displayObject, transform) {
     var data = null;
     switch (renderType) {
         case "sprite":
-            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture) {
+            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture || !displayObject.texture) {
                 data = displayObject.getDrawData();
                 this.currentTexture = displayObject.texture;
 

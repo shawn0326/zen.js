@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>webgl-filter</title>
+    <title>filter</title>
     <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
     	#canvas{
@@ -23,7 +23,7 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
-    var texture = new Texture(render.context, "resources/bunny.png");
+    var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 
     // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 

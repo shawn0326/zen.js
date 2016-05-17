@@ -23,7 +23,7 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
-    var texture = new Texture(render.context, "resources/bunny.png");
+    var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 
     // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
