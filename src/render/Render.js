@@ -36,6 +36,9 @@ var Render = function(view) {
 
     this.defaultBlendMode = BLEND_MODE.SOURCE_OVER;
 
+    // filter
+    this.filtersStack = [];
+
     // init webgl
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
@@ -133,6 +136,15 @@ Render.prototype._render = function(displayObject) {
     }
 
     // if filter, pushFilters, identify matrix
+    var filterMatrix = null;
+    if(displayObject.filters.length > 0) {
+
+        filterMatrix = Matrix.create();
+        filterMatrix.copy(transform);
+        transform.identify();
+
+        this.currentRenderBuffer.cacheFiltersPush(displayObject.filters, displayObject.width, displayObject.height);
+    }
 
     // if mask, pushMask
 
@@ -162,6 +174,17 @@ Render.prototype._render = function(displayObject) {
     }
 
     // if filter, popFilters, restoreMatrix
+    if(displayObject.filters.length > 0) {
+
+        transform.copy(filterMatrix);
+        Matrix.release(filterMatrix);
+
+        for(var i = 0; i < displayObject.filters.length; i++) {
+            this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
+        }
+
+        this.currentRenderBuffer.cacheFiltersPop();
+    }
 
     // if mask, popMask
 
@@ -200,18 +223,18 @@ Render.prototype.drawWebGL = function() {
                 var size = data.count;
                 // is texture not loaded skip render
                 if(data.texture && data.texture.isInit) {
-                    if(data.filters.length > 0) {
-                        // TODO now just last filter works
-                        // render should have popFilter and pushFilter function
-                        var len = data.filters.length;
-
-                        for(var j = 0; j < len; j++) {
-                            data.filters[j].applyFilter(render);
-                        }
-
-                    } else {
+                    // if(data.filters.length > 0) {
+                    //     // TODO now just last filter works
+                    //     // render should have popFilter and pushFilter function
+                    //     var len = data.filters.length;
+                    //
+                    //     for(var j = 0; j < len; j++) {
+                    //         data.filters[j].applyFilter(render);
+                    //     }
+                    //
+                    // } else {
                         this.activateShader(this.textureShader);
-                    }
+                    // }
 
                     // TODO use more texture unit
                     gl.activeTexture(gl.TEXTURE0);
@@ -249,6 +272,87 @@ Render.prototype.drawWebGL = function() {
 
                 // set blendMode
                 this.setBlendMode(blendMode);
+
+                break;
+
+            case RENDER_CMD.FILTERS_PUSH:
+
+                var filters = data.filters;
+
+                // TODO push data, create render target, bind
+                if(this.filtersStack.length == 0) {
+                    this.filtersStack.push({
+                        filters: null,
+                        renderTarget: this.rootRenderTarget
+                    });
+                }
+
+                var renderTarget = RenderTarget.create(this.gl, data.width, data.height);
+
+                this.filtersStack.push({
+                    filters: filters,
+                    renderTarget: renderTarget
+                });
+
+                this.activateRenderTarget(renderTarget);
+
+                break;
+
+            case RENDER_CMD.FILTERS_POP:
+
+                // TODO pop data, draw render target
+                var currentData = this.filtersStack.pop();
+                var lastData = this.filtersStack[this.filtersStack.length - 1];
+
+                //currentData.renderTarget.texture.glTexture
+
+                var filters = currentData.filters;
+
+                var flip = currentData.renderTarget;
+                if(filters.length > 1) {
+                    for(var j = 0, len = filters.length - 1; j < len; j++) {
+                        var flop = RenderTarget.create(gl, flip.width, flip.height);
+
+                        var filter = filters[j];
+                        filter.applyFilter(this);
+
+                        this.activateRenderTarget(flop);
+                        flop.clear();
+
+                        var size = 1;
+
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, flip.texture.glTexture);
+
+                        gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                        this.drawCall++;
+
+                        offset += size * 6;
+
+                        RenderTarget.release(flip);
+                        flip = flop;
+                    }
+                }
+
+                var filter = filters[filters.length - 1];
+
+                this.activateRenderTarget(lastData.renderTarget);
+
+                var size = 1;
+
+                filter.applyFilter(this);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, flip.texture.glTexture);
+
+                gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                this.drawCall++;
+
+                offset += size * 6;
+
+                RenderTarget.release(flip);
 
                 break;
 

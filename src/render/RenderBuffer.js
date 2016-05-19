@@ -21,6 +21,8 @@ var RenderBuffer = function(gl) {
 
     // transform
     this.transform = new Matrix();
+
+    this.displayObject = new Rect();
 }
 
 /**
@@ -140,6 +142,48 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
 
     this.drawData[this.currentSize] = data;
     this.currentSize++;
+}
+
+/**
+ * cache filters push
+ */
+RenderBuffer.prototype.cacheFiltersPush = function(filters, width, height) {
+    var data = DrawData.getObject();
+    data.cmd = RENDER_CMD.FILTERS_PUSH;
+
+    data.filters = filters;
+    data.width = width;
+    data.height = height;
+
+    this.drawData[this.currentSize] = data;
+    this.currentSize++;
+}
+
+/**
+ * cache filters pop
+ */
+RenderBuffer.prototype.cacheFiltersPop = function() {
+    var data = DrawData.getObject();
+    data.cmd = RENDER_CMD.FILTERS_POP;
+    this.drawData[this.currentSize] = data;
+    this.currentSize++;
+}
+
+RenderBuffer.prototype.uploadQuad = function(width, height, transform) {
+    var displayObject = this.displayObject;
+    displayObject.width = width;
+    displayObject.height = height;
+    var vertices = displayObject.getVertices(transform);
+    for(var i = 0; i < vertices.length; i++) {
+        this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
+    }
+
+    var indices = displayObject.getIndices(transform);
+    for(var i = 0; i < indices.length; i++) {
+        this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
+    }
+
+    this.currentBitch ++;
 }
 
 /**

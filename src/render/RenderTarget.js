@@ -37,7 +37,7 @@ RenderTarget.create = function(gl, width, height) {
     var renderTarget = RenderTarget._pool.pop();
     if(renderTarget) {
         if(renderTarget.width == width && renderTarget.height == height) {
-            renderTarget.clear();// if size is right, just clear
+            // renderTarget.clear();// if size is right, just clear
         } else {
             renderTarget.resize(width, height);
         }

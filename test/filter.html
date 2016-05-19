@@ -33,7 +33,7 @@
 
     var filter = new ColorTransformFilter(render.context);
     var scale = 0.9;
-    // filter.grayScale(0.7);
+    filter.grayScale(0.7);
     // filter.blackAndWhite();
     // filter.contrast(2);
     // filter.matrix = [
@@ -46,12 +46,12 @@
     // filter.desaturate();
     var grayFilter = new GrayFilter(render.context);
 
-    var num = 2000;
+    var num = 2;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.texture = texture;
         // sprite.color = 0x475846;
-        sprite.filters = [filter];
+        sprite.filters = [ filter, filter];
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
         sprite.width = 26;
@@ -82,7 +82,7 @@
 
         // filter.grayScale(Math.cos(colorValue / 20));
 
-        filter.hue(colorValue * 2);
+        // filter.hue(colorValue * 2);
 
         // render.clear();
 

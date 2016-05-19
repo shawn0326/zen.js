@@ -7,7 +7,11 @@ var RENDER_CMD = {
 
     RECT: 1,
 
-    BLEND: 2
+    BLEND: 2,
+
+    FILTERS_PUSH: 3,
+
+    FILTERS_POP: 4
 
 }
 
