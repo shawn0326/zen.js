@@ -25,6 +25,8 @@ var DisplayObject = function() {
 
     this.filters = [];
 
+    this.blend = "source-over";
+
 }
 
 /**

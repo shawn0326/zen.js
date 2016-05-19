@@ -14,6 +14,8 @@ var DrawData = function() {
 
     this.count = 0;
 
+    this.blendMode = "";
+
 };
 
 // draw data object pool
@@ -35,6 +37,7 @@ DrawData.returnObject = function(drawData) {
     drawData.color = 0x000000;
     drawData.transform = null;
     drawData.count = 0;
+    drawData.blendMode = "";
 
     DrawData.pool.push(drawData);
 

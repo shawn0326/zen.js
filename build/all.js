@@ -259,6 +259,8 @@ var DrawData = function() {
 
     this.count = 0;
 
+    this.blendMode = "";
+
 };
 
 // draw data object pool
@@ -280,6 +282,7 @@ DrawData.returnObject = function(drawData) {
     drawData.color = 0x000000;
     drawData.transform = null;
     drawData.count = 0;
+    drawData.blendMode = "";
 
     DrawData.pool.push(drawData);
 
@@ -439,15 +442,14 @@ var Render = function(view) {
     // draw call count
     this.drawCall = 0;
 
+    this.defaultBlendMode = "source-over";
+
     // init webgl
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
     gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    // console.log(gl.ONE)
-    // console.log(gl.SRC_ALPHA)
-    // console.log(gl.ONE_MINUS_SRC_ALPHA)
+    this.setBlendMode(this.defaultBlendMode);
 }
 
 Object.defineProperties(Render.prototype, {
@@ -533,8 +535,13 @@ Render.prototype._render = function(displayObject) {
     // transform, use append to add transform matrix
     transform.append(displayObject.getTransformMatrix());
 
-    // if blend, pushBlend
+    // if blend, cache blend mode
+    if(displayObject.blend != this.defaultBlendMode) {
+        this.currentRenderBuffer.cacheBlendMode(displayObject.blend);
+    }
+
     // if filter, pushFilters, identify matrix
+
     // if mask, pushMask
 
     if(displayObject.renderType == "container") {// cache children
@@ -557,8 +564,13 @@ Render.prototype._render = function(displayObject) {
         this.currentRenderBuffer.cache(displayObject);
     }
 
-    // if blend popBlend
+    // if blend, reset blend mode
+    if(displayObject.blend != this.defaultBlendMode) {
+        this.currentRenderBuffer.cacheBlendMode(this.defaultBlendMode);
+    }
+
     // if filter, popFilters, restoreMatrix
+
     // if mask, popMask
 
     // restore matrix
@@ -589,11 +601,11 @@ Render.prototype.drawWebGL = function() {
     var drawData = this.currentRenderBuffer.drawData;
     for(var i = 0; i < currentSize; i++) {
         var data = drawData[i];
-        var size = data.count;
 
         switch (data.renderType) {
             case "sprite":
 
+                var size = data.count;
                 // is texture not loaded skip render
                 if(data.texture && data.texture.isInit) {
                     if(data.filters.length > 0) {
@@ -614,17 +626,37 @@ Render.prototype.drawWebGL = function() {
                     gl.bindTexture(gl.TEXTURE_2D, data.texture.glTexture);
 
                     gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                    // count draw call if texture not exist?
+                    this.drawCall++;
                 }
+
+                offset += size * 6;
 
                 break;
 
             case "rect":
+
+                var size = data.count;
 
                 this.activateShader(this.primitiveShader);
 
                 this.primitiveShader.fillColor(gl, data.color);
 
                 gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                this.drawCall++;
+
+                offset += size * 6;
+
+                break;
+
+            case "blend":
+
+                var blendMode = data.blendMode;
+
+                // set blendMode
+                this.setBlendMode(blendMode);
 
                 break;
 
@@ -634,13 +666,33 @@ Render.prototype.drawWebGL = function() {
 
         }
 
-        offset += size * 6;
-
-        this.drawCall++;
-
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+/**
+ * set blend mode
+ */
+Render.prototype.setBlendMode = function(blendMode) {
+    var gl = this.gl;
+
+    switch (blendMode) {
+        case "source-over":
+            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            break;
+        case "lighter":
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            break;
+        case "destination-out":
+            gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+            break;
+        case "destination-in":
+            gl.blendFunc(gl.ZERO, gl.SRC_ALPHA);
+            break;
+        default:
+            // do nothing
+    }
 }
 
 /**
@@ -772,10 +824,6 @@ var RenderBuffer = function(gl) {
     // the num of DrawData
     this.currentSize = 0;
 
-    // current state
-    this.currentTexture = null;
-    this.currentColor = null;
-
     // vertex array
     this.vertices = new Float32Array(this.size * 4 * 4);
     this.vertexBuffer = gl.createBuffer();
@@ -836,9 +884,8 @@ RenderBuffer.prototype.cache = function(displayObject) {
     var data = null;
     switch (renderType) {
         case "sprite":
-            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture || !displayObject.texture) {
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "sprite" || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
                 data = displayObject.getDrawData();
-                this.currentTexture = displayObject.texture;
 
                 data.renderType = displayObject.renderType;
                 this.drawData[this.currentSize] = data;
@@ -847,9 +894,8 @@ RenderBuffer.prototype.cache = function(displayObject) {
             break;
 
         case "rect":
-            if(displayObject.filters.length > 0 || displayObject.color != this.currentColor) {
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "rect" || this.drawData[this.currentSize - 1].color != displayObject.color) {
                 data = displayObject.getDrawData();
-                this.currentColor = displayObject.color;
 
                 data.renderType = displayObject.renderType;
                 this.drawData[this.currentSize] = data;
@@ -869,6 +915,45 @@ RenderBuffer.prototype.cache = function(displayObject) {
 };
 
 /**
+ * cache blend mode
+ */
+RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
+    if(this.currentSize > 0) {
+        var drawState = false;
+        for(var i = this.currentSize - 1; i > 0; i--) {
+            var data = this.drawData[i];
+
+            if(data.renderType != "blend") {
+                drawState = true;// 存在有效的draw操作
+            }
+
+            // since last cache has no draw，delete last cache
+            if(!drawState && data.renderType == "blend") {
+                this.drawData.splice(i, 1);
+                this.currentSize--;
+                continue;
+            }
+
+            // same as last cache, return, nor break
+            if(data.renderType == "blend") {
+                if(data.blendMode == blendMode) {
+                    return;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    var data = DrawData.getObject();
+    data.renderType = "blend";
+    data.blendMode = blendMode;
+
+    this.drawData[this.currentSize] = data;
+    this.currentSize++;
+}
+
+/**
  * clear draw datas
  */
 RenderBuffer.prototype.clear = function() {
@@ -880,8 +965,6 @@ RenderBuffer.prototype.clear = function() {
     this.drawData.length = 0;
     this.currentBitch = 0;
     this.currentSize = 0;
-    this.currentTexture = null;
-    this.currentColor = null;
 };
 
 /**
@@ -1451,6 +1534,8 @@ var DisplayObject = function() {
     this.height = 0;
 
     this.filters = [];
+
+    this.blend = "source-over";
 
 }
 

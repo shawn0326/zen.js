@@ -34,15 +34,14 @@ var Render = function(view) {
     // draw call count
     this.drawCall = 0;
 
+    this.defaultBlendMode = "source-over";
+
     // init webgl
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
     gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    // console.log(gl.ONE)
-    // console.log(gl.SRC_ALPHA)
-    // console.log(gl.ONE_MINUS_SRC_ALPHA)
+    this.setBlendMode(this.defaultBlendMode);
 }
 
 Object.defineProperties(Render.prototype, {
@@ -128,8 +127,13 @@ Render.prototype._render = function(displayObject) {
     // transform, use append to add transform matrix
     transform.append(displayObject.getTransformMatrix());
 
-    // if blend, pushBlend
+    // if blend, cache blend mode
+    if(displayObject.blend != this.defaultBlendMode) {
+        this.currentRenderBuffer.cacheBlendMode(displayObject.blend);
+    }
+
     // if filter, pushFilters, identify matrix
+
     // if mask, pushMask
 
     if(displayObject.renderType == "container") {// cache children
@@ -152,8 +156,13 @@ Render.prototype._render = function(displayObject) {
         this.currentRenderBuffer.cache(displayObject);
     }
 
-    // if blend popBlend
+    // if blend, reset blend mode
+    if(displayObject.blend != this.defaultBlendMode) {
+        this.currentRenderBuffer.cacheBlendMode(this.defaultBlendMode);
+    }
+
     // if filter, popFilters, restoreMatrix
+
     // if mask, popMask
 
     // restore matrix
@@ -184,11 +193,11 @@ Render.prototype.drawWebGL = function() {
     var drawData = this.currentRenderBuffer.drawData;
     for(var i = 0; i < currentSize; i++) {
         var data = drawData[i];
-        var size = data.count;
 
         switch (data.renderType) {
             case "sprite":
 
+                var size = data.count;
                 // is texture not loaded skip render
                 if(data.texture && data.texture.isInit) {
                     if(data.filters.length > 0) {
@@ -209,17 +218,37 @@ Render.prototype.drawWebGL = function() {
                     gl.bindTexture(gl.TEXTURE_2D, data.texture.glTexture);
 
                     gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                    // count draw call if texture not exist?
+                    this.drawCall++;
                 }
+
+                offset += size * 6;
 
                 break;
 
             case "rect":
+
+                var size = data.count;
 
                 this.activateShader(this.primitiveShader);
 
                 this.primitiveShader.fillColor(gl, data.color);
 
                 gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                this.drawCall++;
+
+                offset += size * 6;
+
+                break;
+
+            case "blend":
+
+                var blendMode = data.blendMode;
+
+                // set blendMode
+                this.setBlendMode(blendMode);
 
                 break;
 
@@ -229,13 +258,33 @@ Render.prototype.drawWebGL = function() {
 
         }
 
-        offset += size * 6;
-
-        this.drawCall++;
-
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+/**
+ * set blend mode
+ */
+Render.prototype.setBlendMode = function(blendMode) {
+    var gl = this.gl;
+
+    switch (blendMode) {
+        case "source-over":
+            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            break;
+        case "lighter":
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            break;
+        case "destination-out":
+            gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+            break;
+        case "destination-in":
+            gl.blendFunc(gl.ZERO, gl.SRC_ALPHA);
+            break;
+        default:
+            // do nothing
+    }
 }
 
 /**

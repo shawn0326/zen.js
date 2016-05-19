@@ -13,10 +13,6 @@ var RenderBuffer = function(gl) {
     // the num of DrawData
     this.currentSize = 0;
 
-    // current state
-    this.currentTexture = null;
-    this.currentColor = null;
-
     // vertex array
     this.vertices = new Float32Array(this.size * 4 * 4);
     this.vertexBuffer = gl.createBuffer();
@@ -77,9 +73,8 @@ RenderBuffer.prototype.cache = function(displayObject) {
     var data = null;
     switch (renderType) {
         case "sprite":
-            if(displayObject.filters.length > 0 || displayObject.texture != this.currentTexture || !displayObject.texture) {
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "sprite" || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
                 data = displayObject.getDrawData();
-                this.currentTexture = displayObject.texture;
 
                 data.renderType = displayObject.renderType;
                 this.drawData[this.currentSize] = data;
@@ -88,9 +83,8 @@ RenderBuffer.prototype.cache = function(displayObject) {
             break;
 
         case "rect":
-            if(displayObject.filters.length > 0 || displayObject.color != this.currentColor) {
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "rect" || this.drawData[this.currentSize - 1].color != displayObject.color) {
                 data = displayObject.getDrawData();
-                this.currentColor = displayObject.color;
 
                 data.renderType = displayObject.renderType;
                 this.drawData[this.currentSize] = data;
@@ -110,6 +104,45 @@ RenderBuffer.prototype.cache = function(displayObject) {
 };
 
 /**
+ * cache blend mode
+ */
+RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
+    if(this.currentSize > 0) {
+        var drawState = false;
+        for(var i = this.currentSize - 1; i > 0; i--) {
+            var data = this.drawData[i];
+
+            if(data.renderType != "blend") {
+                drawState = true;// 存在有效的draw操作
+            }
+
+            // since last cache has no draw，delete last cache
+            if(!drawState && data.renderType == "blend") {
+                this.drawData.splice(i, 1);
+                this.currentSize--;
+                continue;
+            }
+
+            // same as last cache, return, nor break
+            if(data.renderType == "blend") {
+                if(data.blendMode == blendMode) {
+                    return;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    var data = DrawData.getObject();
+    data.renderType = "blend";
+    data.blendMode = blendMode;
+
+    this.drawData[this.currentSize] = data;
+    this.currentSize++;
+}
+
+/**
  * clear draw datas
  */
 RenderBuffer.prototype.clear = function() {
@@ -121,6 +154,4 @@ RenderBuffer.prototype.clear = function() {
     this.drawData.length = 0;
     this.currentBitch = 0;
     this.currentSize = 0;
-    this.currentTexture = null;
-    this.currentColor = null;
 };
