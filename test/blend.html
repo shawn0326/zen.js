@@ -43,12 +43,16 @@
         // sprite.anchorX = 0.5;
         // sprite.anchorY = 0.5;
         sprites.push(sprite);
-        if(i > 500)
-        sprite.blend = "lighter";
-        if(i > 1000)
-        sprite.blend = "destination-in";
-        if(i > 1500)
-        sprite.blend = "destination-out";
+        // if(i > 200)
+        sprite.blend = BLEND_MODE.ADD;
+        // sprite.blend = BLEND_MODE.MULTIPLY;
+        // sprite.blend = BLEND_MODE.SCREEN;
+        // if(i > 500)
+        // sprite.blend = BLEND_MODE.LIGHTER;
+        // if(i > 1000)
+        // sprite.blend = BLEND_MODE.DESTINATION_OUT;
+        // if(i > 1500)
+        // sprite.blend = BLEND_MODE.DESTINATION_IN;
         container.addChild(sprite);
     }
 

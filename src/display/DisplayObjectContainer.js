@@ -6,9 +6,7 @@ var DisplayObjectContainer = function() {
 
     DisplayObjectContainer.superClass.constructor.call(this);
 
-    // render type of this display object
-    // every type has it own render function
-    this.renderType = "container";
+    this.type = DISPLAY_TYPE.CONTAINER;
 
     this.children = [];
 

@@ -6,7 +6,7 @@ var Sprite = function() {
 
     Sprite.superClass.constructor.call(this);
 
-    this.renderType = "sprite";
+    this.type = DISPLAY_TYPE.SPRITE;
 
     // webGL texture
     this.texture = null;

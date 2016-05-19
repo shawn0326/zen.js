@@ -1,3 +1,47 @@
+/*
+ * render command
+ */
+var RENDER_CMD = {
+
+    TEXTURE: 0,
+
+    RECT: 1,
+
+    BLEND: 2
+
+}
+
+/*
+ * display object type
+ */
+var DISPLAY_TYPE = {
+
+    CONTAINER: 0,
+
+    RECT: 1,
+
+    SPRITE: 2
+}
+
+/*
+ * blend mode
+ */
+var BLEND_MODE = {
+
+    SOURCE_OVER: ["ONE", "ONE_MINUS_SRC_ALPHA"],
+
+    LIGHTER: ["SRC_ALPHA", "ONE"],
+
+    DESTINATION_OUT: ["ZERO", "ONE_MINUS_SRC_ALPHA"],
+
+    DESTINATION_IN: ["ZERO", "SRC_ALPHA"],
+
+    ADD: ["ONE", "DST_ALPHA"],
+
+    MULTIPLY: ["DST_COLOR", "ONE_MINUS_SRC_ALPHA"],
+
+    SCREEN: ["ONE", "ONE_MINUS_SRC_COLOR"]
+}
 /**
  * State Class
  * show state
@@ -249,7 +293,7 @@ var Util = {
  **/
 var DrawData = function() {
 
-    this.renderType = "";
+    this.cmd = null;
 
     this.texture = null;
 
@@ -277,7 +321,7 @@ DrawData.getObject = function() {
 
 DrawData.returnObject = function(drawData) {
 
-    drawData.renderType = "";
+    drawData.cmd = null;
     drawData.texture = null;
     drawData.color = 0x000000;
     drawData.transform = null;
@@ -442,7 +486,7 @@ var Render = function(view) {
     // draw call count
     this.drawCall = 0;
 
-    this.defaultBlendMode = "source-over";
+    this.defaultBlendMode = BLEND_MODE.SOURCE_OVER;
 
     // init webgl
     var gl = this.gl;
@@ -544,7 +588,7 @@ Render.prototype._render = function(displayObject) {
 
     // if mask, pushMask
 
-    if(displayObject.renderType == "container") {// cache children
+    if(displayObject.type == DISPLAY_TYPE.CONTAINER) {// cache children
 
         // if cacheAsBitmap
 
@@ -602,8 +646,8 @@ Render.prototype.drawWebGL = function() {
     for(var i = 0; i < currentSize; i++) {
         var data = drawData[i];
 
-        switch (data.renderType) {
-            case "sprite":
+        switch (data.cmd) {
+            case RENDER_CMD.TEXTURE:
 
                 var size = data.count;
                 // is texture not loaded skip render
@@ -635,7 +679,7 @@ Render.prototype.drawWebGL = function() {
 
                 break;
 
-            case "rect":
+            case RENDER_CMD.RECT:
 
                 var size = data.count;
 
@@ -651,7 +695,7 @@ Render.prototype.drawWebGL = function() {
 
                 break;
 
-            case "blend":
+            case RENDER_CMD.BLEND:
 
                 var blendMode = data.blendMode;
 
@@ -661,7 +705,7 @@ Render.prototype.drawWebGL = function() {
                 break;
 
             default:
-                console.warn("no render type function");
+                console.warn("no render type function!");
                 break;
 
         }
@@ -677,21 +721,10 @@ Render.prototype.drawWebGL = function() {
 Render.prototype.setBlendMode = function(blendMode) {
     var gl = this.gl;
 
-    switch (blendMode) {
-        case "source-over":
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-            break;
-        case "lighter":
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-            break;
-        case "destination-out":
-            gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
-            break;
-        case "destination-in":
-            gl.blendFunc(gl.ZERO, gl.SRC_ALPHA);
-            break;
-        default:
-            // do nothing
+    if(blendMode && blendMode.length == 2) {
+        gl.blendFunc(gl[blendMode[0]], gl[blendMode[1]]);
+    } else {
+        console.log("blend mode not found!");
     }
 }
 
@@ -880,24 +913,24 @@ RenderBuffer.prototype.cache = function(displayObject) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }
 
-    var renderType = displayObject.renderType;
+    var type = displayObject.type;
     var data = null;
-    switch (renderType) {
-        case "sprite":
-            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "sprite" || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
+    switch (type) {
+        case DISPLAY_TYPE.SPRITE:
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].cmd != RENDER_CMD.TEXTURE || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
                 data = displayObject.getDrawData();
 
-                data.renderType = displayObject.renderType;
+                data.cmd = RENDER_CMD.TEXTURE;
                 this.drawData[this.currentSize] = data;
                 this.currentSize++;
             }
             break;
 
-        case "rect":
-            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "rect" || this.drawData[this.currentSize - 1].color != displayObject.color) {
+        case DISPLAY_TYPE.RECT:
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].cmd != RENDER_CMD.RECT || this.drawData[this.currentSize - 1].color != displayObject.color) {
                 data = displayObject.getDrawData();
 
-                data.renderType = displayObject.renderType;
+                data.cmd = RENDER_CMD.RECT;
                 this.drawData[this.currentSize] = data;
                 this.currentSize++;
             }
@@ -923,19 +956,19 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
         for(var i = this.currentSize - 1; i > 0; i--) {
             var data = this.drawData[i];
 
-            if(data.renderType != "blend") {
-                drawState = true;// 存在有效的draw操作
+            if(data.cmd != RENDER_CMD.BLEND) {
+                drawState = true;// a real draw
             }
 
             // since last cache has no draw，delete last cache
-            if(!drawState && data.renderType == "blend") {
+            if(!drawState && data.cmd == RENDER_CMD.BLEND) {
                 this.drawData.splice(i, 1);
                 this.currentSize--;
                 continue;
             }
 
             // same as last cache, return, nor break
-            if(data.renderType == "blend") {
+            if(data.cmd == RENDER_CMD.BLEND) {
                 if(data.blendMode == blendMode) {
                     return;
                 } else {
@@ -946,7 +979,7 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
     }
 
     var data = DrawData.getObject();
-    data.renderType = "blend";
+    data.cmd = RENDER_CMD.BLEND;
     data.blendMode = blendMode;
 
     this.drawData[this.currentSize] = data;
@@ -1514,9 +1547,9 @@ GrayFilter.prototype.applyFilter = function(render) {
  **/
 var DisplayObject = function() {
 
-    // render type of this display object
-    // every type has it own render function
-    this.renderType = "";
+    // type of this display object
+    // typeof DISPLAY_TYPE
+    this.type = null;
 
     // bla bla ...
     this.x = 0;
@@ -1535,7 +1568,7 @@ var DisplayObject = function() {
 
     this.filters = [];
 
-    this.blend = "source-over";
+    this.blend = BLEND_MODE.SOURCE_OVER;
 
 }
 
@@ -1589,9 +1622,7 @@ var DisplayObjectContainer = function() {
 
     DisplayObjectContainer.superClass.constructor.call(this);
 
-    // render type of this display object
-    // every type has it own render function
-    this.renderType = "container";
+    this.type = DISPLAY_TYPE.CONTAINER;
 
     this.children = [];
 
@@ -1629,7 +1660,7 @@ var Sprite = function() {
 
     Sprite.superClass.constructor.call(this);
 
-    this.renderType = "sprite";
+    this.type = DISPLAY_TYPE.SPRITE;
 
     // webGL texture
     this.texture = null;
@@ -1707,7 +1738,7 @@ var Rect = function() {
 
     Rect.superClass.constructor.call(this);
 
-    this.renderType = "rect";
+    this.type = DISPLAY_TYPE.RECT;
 
     // color
     this.color = 0x000000;

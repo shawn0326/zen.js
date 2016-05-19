@@ -6,6 +6,7 @@ var notify = require('gulp-notify');//提示信息
 
 gulp.task('default', function() {
     gulp.src([
+        "src/Const.js",
         "src/State.js",
         "src/math/Matrix.js",
         "src/Util.js",

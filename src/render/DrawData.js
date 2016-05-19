@@ -4,7 +4,7 @@
  **/
 var DrawData = function() {
 
-    this.renderType = "";
+    this.cmd = null;
 
     this.texture = null;
 
@@ -32,7 +32,7 @@ DrawData.getObject = function() {
 
 DrawData.returnObject = function(drawData) {
 
-    drawData.renderType = "";
+    drawData.cmd = null;
     drawData.texture = null;
     drawData.color = 0x000000;
     drawData.transform = null;

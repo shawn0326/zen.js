@@ -6,7 +6,7 @@ var Rect = function() {
 
     Rect.superClass.constructor.call(this);
 
-    this.renderType = "rect";
+    this.type = DISPLAY_TYPE.RECT;
 
     // color
     this.color = 0x000000;

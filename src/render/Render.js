@@ -34,7 +34,7 @@ var Render = function(view) {
     // draw call count
     this.drawCall = 0;
 
-    this.defaultBlendMode = "source-over";
+    this.defaultBlendMode = BLEND_MODE.SOURCE_OVER;
 
     // init webgl
     var gl = this.gl;
@@ -136,7 +136,7 @@ Render.prototype._render = function(displayObject) {
 
     // if mask, pushMask
 
-    if(displayObject.renderType == "container") {// cache children
+    if(displayObject.type == DISPLAY_TYPE.CONTAINER) {// cache children
 
         // if cacheAsBitmap
 
@@ -194,8 +194,8 @@ Render.prototype.drawWebGL = function() {
     for(var i = 0; i < currentSize; i++) {
         var data = drawData[i];
 
-        switch (data.renderType) {
-            case "sprite":
+        switch (data.cmd) {
+            case RENDER_CMD.TEXTURE:
 
                 var size = data.count;
                 // is texture not loaded skip render
@@ -227,7 +227,7 @@ Render.prototype.drawWebGL = function() {
 
                 break;
 
-            case "rect":
+            case RENDER_CMD.RECT:
 
                 var size = data.count;
 
@@ -243,7 +243,7 @@ Render.prototype.drawWebGL = function() {
 
                 break;
 
-            case "blend":
+            case RENDER_CMD.BLEND:
 
                 var blendMode = data.blendMode;
 
@@ -253,7 +253,7 @@ Render.prototype.drawWebGL = function() {
                 break;
 
             default:
-                console.warn("no render type function");
+                console.warn("no render type function!");
                 break;
 
         }
@@ -269,21 +269,10 @@ Render.prototype.drawWebGL = function() {
 Render.prototype.setBlendMode = function(blendMode) {
     var gl = this.gl;
 
-    switch (blendMode) {
-        case "source-over":
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-            break;
-        case "lighter":
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-            break;
-        case "destination-out":
-            gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
-            break;
-        case "destination-in":
-            gl.blendFunc(gl.ZERO, gl.SRC_ALPHA);
-            break;
-        default:
-            // do nothing
+    if(blendMode && blendMode.length == 2) {
+        gl.blendFunc(gl[blendMode[0]], gl[blendMode[1]]);
+    } else {
+        console.log("blend mode not found!");
     }
 }
 

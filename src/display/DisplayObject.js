@@ -4,9 +4,9 @@
  **/
 var DisplayObject = function() {
 
-    // render type of this display object
-    // every type has it own render function
-    this.renderType = "";
+    // type of this display object
+    // typeof DISPLAY_TYPE
+    this.type = null;
 
     // bla bla ...
     this.x = 0;
@@ -25,7 +25,7 @@ var DisplayObject = function() {
 
     this.filters = [];
 
-    this.blend = "source-over";
+    this.blend = BLEND_MODE.SOURCE_OVER;
 
 }
 

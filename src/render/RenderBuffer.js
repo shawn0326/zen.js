@@ -69,24 +69,24 @@ RenderBuffer.prototype.cache = function(displayObject) {
         this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
     }
 
-    var renderType = displayObject.renderType;
+    var type = displayObject.type;
     var data = null;
-    switch (renderType) {
-        case "sprite":
-            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "sprite" || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
+    switch (type) {
+        case DISPLAY_TYPE.SPRITE:
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].cmd != RENDER_CMD.TEXTURE || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
                 data = displayObject.getDrawData();
 
-                data.renderType = displayObject.renderType;
+                data.cmd = RENDER_CMD.TEXTURE;
                 this.drawData[this.currentSize] = data;
                 this.currentSize++;
             }
             break;
 
-        case "rect":
-            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].renderType != "rect" || this.drawData[this.currentSize - 1].color != displayObject.color) {
+        case DISPLAY_TYPE.RECT:
+            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].cmd != RENDER_CMD.RECT || this.drawData[this.currentSize - 1].color != displayObject.color) {
                 data = displayObject.getDrawData();
 
-                data.renderType = displayObject.renderType;
+                data.cmd = RENDER_CMD.RECT;
                 this.drawData[this.currentSize] = data;
                 this.currentSize++;
             }
@@ -112,19 +112,19 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
         for(var i = this.currentSize - 1; i > 0; i--) {
             var data = this.drawData[i];
 
-            if(data.renderType != "blend") {
-                drawState = true;// 存在有效的draw操作
+            if(data.cmd != RENDER_CMD.BLEND) {
+                drawState = true;// a real draw
             }
 
             // since last cache has no draw，delete last cache
-            if(!drawState && data.renderType == "blend") {
+            if(!drawState && data.cmd == RENDER_CMD.BLEND) {
                 this.drawData.splice(i, 1);
                 this.currentSize--;
                 continue;
             }
 
             // same as last cache, return, nor break
-            if(data.renderType == "blend") {
+            if(data.cmd == RENDER_CMD.BLEND) {
                 if(data.blendMode == blendMode) {
                     return;
                 } else {
@@ -135,7 +135,7 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
     }
 
     var data = DrawData.getObject();
-    data.renderType = "blend";
+    data.cmd = RENDER_CMD.BLEND;
     data.blendMode = blendMode;
 
     this.drawData[this.currentSize] = data;
