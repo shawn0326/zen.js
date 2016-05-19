@@ -33,11 +33,14 @@ var RenderTarget = function(gl, width, height, root) {
 
 RenderTarget._pool = [];
 
-RenderTarget.create = function(gl, width, height) {
+RenderTarget.create = function(gl, width, height, bind) {
     var renderTarget = RenderTarget._pool.pop();
     if(renderTarget) {
         if(renderTarget.width == width && renderTarget.height == height) {
-            // renderTarget.clear();// if size is right, just clear
+            if(bind) {
+                renderTarget.activate();
+            }
+            renderTarget.clear();// if size is right, just clear
         } else {
             renderTarget.resize(width, height);
         }
@@ -102,5 +105,3 @@ RenderTarget.prototype.activate = function() {
 RenderTarget.prototype.destroy = function() {
     // TODO destroy
 };
-
-

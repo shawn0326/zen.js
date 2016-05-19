@@ -22,6 +22,7 @@ var RenderBuffer = function(gl) {
     // transform
     this.transform = new Matrix();
 
+    // a help display object to create quads vertices
     this.displayObject = new Rect();
 }
 
@@ -169,10 +170,14 @@ RenderBuffer.prototype.cacheFiltersPop = function() {
     this.currentSize++;
 }
 
+/**
+ * help function to upload quad vertices
+ */
 RenderBuffer.prototype.uploadQuad = function(width, height, transform) {
     var displayObject = this.displayObject;
     displayObject.width = width;
     displayObject.height = height;
+
     var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {
         this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];

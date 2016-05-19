@@ -176,12 +176,15 @@ Render.prototype._render = function(displayObject) {
     // if filter, popFilters, restoreMatrix
     if(displayObject.filters.length > 0) {
 
+        for(var i = 0; i < displayObject.filters.length - 1; i++) {
+            this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
+        }
+
         transform.copy(filterMatrix);
         Matrix.release(filterMatrix);
 
-        for(var i = 0; i < displayObject.filters.length; i++) {
-            this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
-        }
+        // last time, push vertices by real transform
+        this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
 
         this.currentRenderBuffer.cacheFiltersPop();
     }
@@ -223,18 +226,8 @@ Render.prototype.drawWebGL = function() {
                 var size = data.count;
                 // is texture not loaded skip render
                 if(data.texture && data.texture.isInit) {
-                    // if(data.filters.length > 0) {
-                    //     // TODO now just last filter works
-                    //     // render should have popFilter and pushFilter function
-                    //     var len = data.filters.length;
-                    //
-                    //     for(var j = 0; j < len; j++) {
-                    //         data.filters[j].applyFilter(render);
-                    //     }
-                    //
-                    // } else {
-                        this.activateShader(this.textureShader);
-                    // }
+
+                    this.activateShader(this.textureShader);
 
                     // TODO use more texture unit
                     gl.activeTexture(gl.TEXTURE0);
@@ -277,81 +270,83 @@ Render.prototype.drawWebGL = function() {
 
             case RENDER_CMD.FILTERS_PUSH:
 
+                // get filters
                 var filters = data.filters;
 
-                // TODO push data, create render target, bind
+                // the root of this stack
+                // after all, we must draw to the stage
                 if(this.filtersStack.length == 0) {
                     this.filtersStack.push({
                         filters: null,
-                        renderTarget: this.rootRenderTarget
+                        renderTarget: this.currentRenderTarget
                     });
                 }
 
-                var renderTarget = RenderTarget.create(this.gl, data.width, data.height);
+                // create a render target for filters
+                // this render target will store the render result of prev filters
+                // and as a input of this filters
+                var renderTarget = RenderTarget.create(this.gl, data.width, data.height, true);
 
+                // push filters data
                 this.filtersStack.push({
                     filters: filters,
                     renderTarget: renderTarget
                 });
 
+                // activate this render target, so the object will be rendered to this render target
+                // TODO maybe this draw can apply a filter?
                 this.activateRenderTarget(renderTarget);
 
                 break;
 
             case RENDER_CMD.FILTERS_POP:
 
-                // TODO pop data, draw render target
                 var currentData = this.filtersStack.pop();
                 var lastData = this.filtersStack[this.filtersStack.length - 1];
 
-                //currentData.renderTarget.texture.glTexture
-
                 var filters = currentData.filters;
+                var len = filters.length;
 
                 var flip = currentData.renderTarget;
-                if(filters.length > 1) {
-                    for(var j = 0, len = filters.length - 1; j < len; j++) {
-                        var flop = RenderTarget.create(gl, flip.width, flip.height);
+                if(len > 1) {
+
+                    for(var j = 0; j < len - 1; j++) {
 
                         var filter = filters[j];
                         filter.applyFilter(this);
 
+                        // a temp render target
+                        var flop = RenderTarget.create(gl, flip.width, flip.height, true);
                         this.activateRenderTarget(flop);
-                        flop.clear();
 
                         var size = 1;
-
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, flip.texture.glTexture);
-
                         gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
-
                         this.drawCall++;
-
                         offset += size * 6;
 
                         RenderTarget.release(flip);
+
                         flip = flop;
                     }
+
                 }
 
                 var filter = filters[filters.length - 1];
-
-                this.activateRenderTarget(lastData.renderTarget);
-
-                var size = 1;
-
                 filter.applyFilter(this);
 
+                var renderTarget = lastData.renderTarget;
+                this.activateRenderTarget(renderTarget);
+
+                var size = 1;
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, flip.texture.glTexture);
-
                 gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
-
                 this.drawCall++;
-
                 offset += size * 6;
 
+                // release the render target
                 RenderTarget.release(flip);
 
                 break;

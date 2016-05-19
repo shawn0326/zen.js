@@ -30,6 +30,8 @@
     // create some sprites
     var sprites = [];
     var container = new DisplayObjectContainer();
+    container.width = 480;
+    container.height = 800;
 
     var filter = new ColorTransformFilter(render.context);
     var scale = 0.9;
@@ -46,12 +48,12 @@
     // filter.desaturate();
     var grayFilter = new GrayFilter(render.context);
 
-    var num = 2;
+    var num = 10;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.texture = texture;
         // sprite.color = 0x475846;
-        sprite.filters = [ filter, filter];
+        sprite.filters = [filter];
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
         sprite.width = 26;
@@ -61,6 +63,7 @@
         sprites.push(sprite);
         container.addChild(sprite);
     }
+    container.filters = [filter, grayFilter];
 
     console.log("render object number:", num)
 
@@ -82,7 +85,7 @@
 
         // filter.grayScale(Math.cos(colorValue / 20));
 
-        // filter.hue(colorValue * 2);
+        filter.hue(colorValue * 2);
 
         // render.clear();
 
