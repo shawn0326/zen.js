@@ -12,9 +12,6 @@ var RenderTarget = function(gl, width, height, root) {
     // size
     this.width = width;
     this.height = height;
-    // transform matrix
-    // change render target will also has a new transform space
-    this.transform = new Matrix();
     // clear color
     this.clearColor = [0.0, 0.0, 0.0, 0.0];
 
@@ -44,8 +41,6 @@ RenderTarget.create = function(gl, width, height) {
         } else {
             renderTarget.resize(width, height);
         }
-
-        renderTarget.transform.identify();
 
         return renderTarget;
     } else {

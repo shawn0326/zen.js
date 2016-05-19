@@ -511,9 +511,6 @@ Render.prototype.render = function(displayObject) {
 
     this.flush();
 
-    // identify transform
-    this.currentRenderTarget.transform.identify();
-
     return this.drawCall;
 
 };
@@ -529,23 +526,40 @@ Render.prototype._render = function(displayObject) {
     }
 
     // save matrix
-    var transform = this.currentRenderTarget.transform;
+    var transform = this.currentRenderBuffer.transform;
     var matrix = Matrix.create();
     matrix.copy(transform);
 
     // transform, use append to add transform matrix
-    this.currentRenderTarget.transform.append(displayObject.getTransformMatrix());
+    transform.append(displayObject.getTransformMatrix());
+
+    // if blend, pushBlend
+    // if filter, pushFilters, identify matrix
+    // if mask, pushMask
 
     if(displayObject.renderType == "container") {// cache children
+
+        // if cacheAsBitmap
+
+        // if not init
+        // change target, identify matrix
+
         var len = displayObject.children.length;
         for(var i = 0; i < len; i++) {
             var child = displayObject.children[i];
             this._render(child);
         }
+
+        // render renderTexture
+
     } else {
         // cache display object
-        this.currentRenderBuffer.cache(displayObject, transform);
+        this.currentRenderBuffer.cache(displayObject);
     }
+
+    // if blend popBlend
+    // if filter, popFilters, restoreMatrix
+    // if mask, popMask
 
     // restore matrix
     transform.copy(matrix);
@@ -650,9 +664,6 @@ var RenderTarget = function(gl, width, height, root) {
     // size
     this.width = width;
     this.height = height;
-    // transform matrix
-    // change render target will also has a new transform space
-    this.transform = new Matrix();
     // clear color
     this.clearColor = [0.0, 0.0, 0.0, 0.0];
 
@@ -682,8 +693,6 @@ RenderTarget.create = function(gl, width, height) {
         } else {
             renderTarget.resize(width, height);
         }
-
-        renderTarget.transform.identify();
 
         return renderTarget;
     } else {
@@ -772,6 +781,9 @@ var RenderBuffer = function(gl) {
     this.vertexBuffer = gl.createBuffer();
     this.indices = new Uint16Array(this.size * 6);
     this.indexBuffer = gl.createBuffer();
+
+    // transform
+    this.transform = new Matrix();
 }
 
 /**
@@ -806,8 +818,9 @@ RenderBuffer.prototype.reachedMaxSize = function() {
 /**
  * cache draw datas from a displayObject
  */
-RenderBuffer.prototype.cache = function(displayObject, transform) {
+RenderBuffer.prototype.cache = function(displayObject) {
     var gl = this.gl;
+    var transform = this.transform;
 
     var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {

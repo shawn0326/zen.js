@@ -22,6 +22,9 @@ var RenderBuffer = function(gl) {
     this.vertexBuffer = gl.createBuffer();
     this.indices = new Uint16Array(this.size * 6);
     this.indexBuffer = gl.createBuffer();
+
+    // transform
+    this.transform = new Matrix();
 }
 
 /**
@@ -56,8 +59,9 @@ RenderBuffer.prototype.reachedMaxSize = function() {
 /**
  * cache draw datas from a displayObject
  */
-RenderBuffer.prototype.cache = function(displayObject, transform) {
+RenderBuffer.prototype.cache = function(displayObject) {
     var gl = this.gl;
+    var transform = this.transform;
 
     var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {

@@ -106,9 +106,6 @@ Render.prototype.render = function(displayObject) {
 
     this.flush();
 
-    // identify transform
-    this.currentRenderTarget.transform.identify();
-
     return this.drawCall;
 
 };
@@ -124,23 +121,40 @@ Render.prototype._render = function(displayObject) {
     }
 
     // save matrix
-    var transform = this.currentRenderTarget.transform;
+    var transform = this.currentRenderBuffer.transform;
     var matrix = Matrix.create();
     matrix.copy(transform);
 
     // transform, use append to add transform matrix
-    this.currentRenderTarget.transform.append(displayObject.getTransformMatrix());
+    transform.append(displayObject.getTransformMatrix());
+
+    // if blend, pushBlend
+    // if filter, pushFilters, identify matrix
+    // if mask, pushMask
 
     if(displayObject.renderType == "container") {// cache children
+
+        // if cacheAsBitmap
+
+        // if not init
+        // change target, identify matrix
+
         var len = displayObject.children.length;
         for(var i = 0; i < len; i++) {
             var child = displayObject.children[i];
             this._render(child);
         }
+
+        // render renderTexture
+
     } else {
         // cache display object
-        this.currentRenderBuffer.cache(displayObject, transform);
+        this.currentRenderBuffer.cache(displayObject);
     }
+
+    // if blend popBlend
+    // if filter, popFilters, restoreMatrix
+    // if mask, popMask
 
     // restore matrix
     transform.copy(matrix);
