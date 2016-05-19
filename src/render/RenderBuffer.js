@@ -109,7 +109,7 @@ RenderBuffer.prototype.cache = function(displayObject) {
 RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
     if(this.currentSize > 0) {
         var drawState = false;
-        for(var i = this.currentSize - 1; i > 0; i--) {
+        for(var i = this.currentSize - 1; i >= 0; i--) {
             var data = this.drawData[i];
 
             if(data.cmd != RENDER_CMD.BLEND) {
