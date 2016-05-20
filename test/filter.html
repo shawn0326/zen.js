@@ -48,12 +48,12 @@
     // filter.desaturate();
     var grayFilter = new GrayFilter(render.context);
 
-    var num = 10;
+    var num = 1900;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.texture = texture;
         // sprite.color = 0x475846;
-        // sprite.filters = [filter, filter];
+        // sprite.filters = [filter];
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
         sprite.width = 26;
@@ -63,7 +63,7 @@
         sprites.push(sprite);
         container.addChild(sprite);
     }
-    container.filters = [filter, filter, grayFilter, filter];
+    container.filters = [filter];
 
     console.log("render object number:", num)
 
@@ -78,6 +78,11 @@
         requestAnimationFrame(loop);
 
         colorValue++;
+
+        for(var i=0;i<num;i++)
+        {
+           sprites[i].rotation += 0.1;
+        }
 
         // filter.matrix[0] = Math.sin(colorValue / 30);
         // filter.matrix[5] = Math.cos(colorValue / 20);

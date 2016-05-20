@@ -633,11 +633,20 @@ Render.prototype._render = function(displayObject) {
     if(displayObject.filters.length > 0) {
 
         for(var i = 0; i < displayObject.filters.length - 1; i++) {
+
+            if(this.currentRenderBuffer.reachedMaxSize()) {
+                this.flush();
+            }
+
             this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
         }
 
         transform.copy(filterMatrix);
         Matrix.release(filterMatrix);
+
+        if(this.currentRenderBuffer.reachedMaxSize()) {
+            this.flush();
+        }
 
         // last time, push vertices by real transform
         this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
@@ -769,18 +778,11 @@ Render.prototype.drawWebGL = function() {
                     for(var j = 0; j < len - 1; j++) {
 
                         var filter = filters[j];
-                        filter.applyFilter(this);
 
                         // a temp render target
                         var flop = RenderTarget.create(gl, flip.width, flip.height);
-                        this.activateRenderTarget(flop);
 
-                        var size = 1;
-                        gl.activeTexture(gl.TEXTURE0);
-                        gl.bindTexture(gl.TEXTURE_2D, flip.texture.glTexture);
-                        gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
-                        this.drawCall++;
-                        offset += size * 6;
+                        offset = this.applyFilter(filter, flip, flop, offset);
 
                         RenderTarget.release(flip);
 
@@ -790,17 +792,10 @@ Render.prototype.drawWebGL = function() {
                 }
 
                 var filter = filters[filters.length - 1];
-                filter.applyFilter(this);
 
                 var renderTarget = lastData.renderTarget;
-                this.activateRenderTarget(renderTarget);
 
-                var size = 1;
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, flip.texture.glTexture);
-                gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
-                this.drawCall++;
-                offset += size * 6;
+                offset = this.applyFilter(filter, flip, renderTarget, offset);
 
                 // release the render target
                 RenderTarget.release(flip);
@@ -816,6 +811,28 @@ Render.prototype.drawWebGL = function() {
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+/**
+ * apply filter
+ */
+Render.prototype.applyFilter = function(filter, input, output, offset) {
+    var gl = this.gl;
+
+    filter.applyFilter(this);
+
+    this.activateRenderTarget(output);
+
+    var size = 1;
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, input.texture.glTexture);
+    gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+    this.drawCall++;
+
+    offset += size * 6;
+
+    return offset;
 }
 
 /**
