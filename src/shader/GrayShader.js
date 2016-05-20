@@ -38,7 +38,7 @@ Util.inherit(GrayShader, Shader);
  **/
 GrayShader.prototype.activate = function(gl, width, height) {
 
-    TextureShader.superClass.activate.call(this, gl, width, height);
+    GrayShader.superClass.activate.call(this, gl, width, height);
 
     // set attributes
     var a_Position = gl.getAttribLocation(this.program, "a_Position");

@@ -154,7 +154,7 @@ ColorTransformFilter.prototype.negative = function() {
 
 ColorTransformFilter.prototype.applyFilter = function(render, input, output, offset) {
     render.activateShader(this.shader);
-    this.shader.setMatrix(render.context, this.matrix);
+    this.shader.setMatrix(render.gl, this.matrix);
 
     offset = render.applyFilter(this, input, output, offset);
 

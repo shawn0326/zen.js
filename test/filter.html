@@ -47,13 +47,17 @@
     // filter.negative();
     // filter.desaturate();
     var grayFilter = new GrayFilter(render.context);
+    var blurXFilter = new BlurXFilter(render.context);
+    blurXFilter.blurX = 2;
+    var blurYFilter = new BlurYFilter(render.context);
+    blurYFilter.blurY = 2;
 
-    var num = 1900;
+    var num = 100;
     for(var i = 0; i < num; i++) {
         var sprite = new Sprite();
         sprite.texture = texture;
         // sprite.color = 0x475846;
-        // sprite.filters = [filter];
+        // sprite.filters = [blurXFilter, blurYFilter];
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
         sprite.width = 26;
@@ -63,7 +67,7 @@
         sprites.push(sprite);
         container.addChild(sprite);
     }
-    container.filters = [filter];
+    container.filters = [blurXFilter, blurYFilter, filter];
 
     console.log("render object number:", num)
 

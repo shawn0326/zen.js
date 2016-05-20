@@ -1406,7 +1406,7 @@ Util.inherit(ColorTransformShader, Shader);
  **/
 ColorTransformShader.prototype.activate = function(gl, width, height) {
 
-    TextureShader.superClass.activate.call(this, gl, width, height);
+    ColorTransformShader.superClass.activate.call(this, gl, width, height);
 
     // set attributes
     var a_Position = gl.getAttribLocation(this.program, "a_Position");
@@ -1502,7 +1502,7 @@ Util.inherit(GrayShader, Shader);
  **/
 GrayShader.prototype.activate = function(gl, width, height) {
 
-    TextureShader.superClass.activate.call(this, gl, width, height);
+    GrayShader.superClass.activate.call(this, gl, width, height);
 
     // set attributes
     var a_Position = gl.getAttribLocation(this.program, "a_Position");
@@ -1517,6 +1517,174 @@ GrayShader.prototype.activate = function(gl, width, height) {
     var u_Sampler = gl.getUniformLocation(this.program, "u_Sampler");
     gl.uniform1i(u_Sampler, 0);
 
+}
+
+/**
+ * BlurXShader Class
+ **/
+var BlurXShader = function(gl) {
+
+    var vshaderSource = [
+        'attribute vec2 a_Position;',
+        'attribute vec2 a_TexCoord;',
+        'varying vec2 v_TexCoord;',
+        'uniform vec2 u_Projection;',
+        "const vec2 center = vec2(1.0, 1.0);",
+        'void main() {',
+            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'v_TexCoord = a_TexCoord;',
+        '}'
+    ].join("\n");
+
+    var fshaderSource = [
+        'precision mediump float;',
+        'uniform sampler2D u_Sampler;',
+        'varying vec2 v_TexCoord;',
+        'uniform float u_Blur;',
+        'uniform vec2 u_TextureSize;',
+        'void main() {',
+            'const int sampleRadius = 5;',
+            'const int samples = sampleRadius * 2 + 1;',
+            'vec4 color = vec4(0, 0, 0, 0);',
+            'for (int i = -sampleRadius; i <= sampleRadius; i++) {',
+                'color += texture2D(u_Sampler, v_TexCoord + vec2(float(i) * u_Blur / float(sampleRadius) / u_TextureSize.x, 0));',
+            '}',
+            'color /= float(samples);',
+            'gl_FragColor = color;',
+        '}'
+    ].join("\n");
+
+    BlurXShader.superClass.constructor.call(this, gl, vshaderSource, fshaderSource);
+
+}
+
+// inherit
+Util.inherit(BlurXShader, Shader);
+
+/**
+ * activate this shader
+ **/
+BlurXShader.prototype.activate = function(gl, width, height) {
+
+    BlurXShader.superClass.activate.call(this, gl, width, height);
+
+    // set attributes
+    var a_Position = gl.getAttribLocation(this.program, "a_Position");
+    var a_TexCoord = gl.getAttribLocation(this.program, "a_TexCoord");
+    var FSIZE = 4;
+    gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE * 4, 0);
+    gl.enableVertexAttribArray(a_Position);
+    gl.vertexAttribPointer(a_TexCoord, 2, gl.FLOAT, false, FSIZE * 4, FSIZE * 2);
+    gl.enableVertexAttribArray(a_TexCoord);
+
+    // sync uniform
+    var u_Sampler = gl.getUniformLocation(this.program, "u_Sampler");
+    gl.uniform1i(u_Sampler, 0);
+
+}
+
+/**
+ * setBlurX
+ **/
+BlurXShader.prototype.setBlurX = function(gl, blur) {
+    // sync uniform
+    var u_Blur = gl.getUniformLocation(this.program, "u_Blur");
+
+    gl.uniform1f(u_Blur, blur);
+}
+
+/**
+ * set texture size
+ **/
+BlurXShader.prototype.setTextureSize = function(gl, width, height) {
+    // sync uniform
+    var u_TextureSize = gl.getUniformLocation(this.program, "u_TextureSize");
+
+    gl.uniform2f(u_TextureSize, width, height);
+}
+
+/**
+ * BlurYShader Class
+ **/
+var BlurYShader = function(gl) {
+
+    var vshaderSource = [
+        'attribute vec2 a_Position;',
+        'attribute vec2 a_TexCoord;',
+        'varying vec2 v_TexCoord;',
+        'uniform vec2 u_Projection;',
+        "const vec2 center = vec2(1.0, 1.0);",
+        'void main() {',
+            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'v_TexCoord = a_TexCoord;',
+        '}'
+    ].join("\n");
+
+    var fshaderSource = [
+        'precision mediump float;',
+        'uniform sampler2D u_Sampler;',
+        'varying vec2 v_TexCoord;',
+        'uniform float u_Blur;',
+        'uniform vec2 u_TextureSize;',
+        'void main() {',
+            'const int sampleRadius = 5;',
+            'const int samples = sampleRadius * 2 + 1;',
+            'vec4 color = vec4(0, 0, 0, 0);',
+            'for (int i = -sampleRadius; i <= sampleRadius; i++) {',
+                'color += texture2D(u_Sampler, v_TexCoord + vec2(0, float(i) * u_Blur / float(sampleRadius) / u_TextureSize.y));',
+            '}',
+            'color /= float(samples);',
+            'gl_FragColor = color;',
+        '}'
+    ].join("\n");
+
+    BlurYShader.superClass.constructor.call(this, gl, vshaderSource, fshaderSource);
+
+}
+
+// inherit
+Util.inherit(BlurYShader, Shader);
+
+/**
+ * activate this shader
+ **/
+BlurYShader.prototype.activate = function(gl, width, height) {
+
+    BlurYShader.superClass.activate.call(this, gl, width, height);
+
+    // set attributes
+    var a_Position = gl.getAttribLocation(this.program, "a_Position");
+    var a_TexCoord = gl.getAttribLocation(this.program, "a_TexCoord");
+    var FSIZE = 4;
+    gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE * 4, 0);
+    gl.enableVertexAttribArray(a_Position);
+    gl.vertexAttribPointer(a_TexCoord, 2, gl.FLOAT, false, FSIZE * 4, FSIZE * 2);
+    gl.enableVertexAttribArray(a_TexCoord);
+
+    // sync uniform
+    var u_Sampler = gl.getUniformLocation(this.program, "u_Sampler");
+    gl.uniform1i(u_Sampler, 0);
+
+}
+
+/**
+ * setBlurY
+ **/
+BlurYShader.prototype.setBlurY = function(gl, blur) {
+    // sync uniform
+    var u_Blur = gl.getUniformLocation(this.program, "u_Blur");
+
+    gl.uniform1f(u_Blur, blur);
+}
+
+/**
+ * set texture size
+ **/
+BlurYShader.prototype.setTextureSize = function(gl, width, height) {
+    // sync uniform
+    var u_TextureSize = gl.getUniformLocation(this.program, "u_TextureSize");
+
+    gl.uniform2f(u_TextureSize, width, height);
 }
 
 /**
@@ -1698,7 +1866,7 @@ ColorTransformFilter.prototype.negative = function() {
 
 ColorTransformFilter.prototype.applyFilter = function(render, input, output, offset) {
     render.activateShader(this.shader);
-    this.shader.setMatrix(render.context, this.matrix);
+    this.shader.setMatrix(render.gl, this.matrix);
 
     offset = render.applyFilter(this, input, output, offset);
 
@@ -1718,6 +1886,52 @@ Util.inherit(GrayFilter, AbstractFilter);
 
 GrayFilter.prototype.applyFilter = function(render, input, output, offset) {
     render.activateShader(this.shader);
+
+    offset = render.applyFilter(this, input, output, offset);
+
+    return offset;
+}
+
+/**
+ * blurX filter
+ **/
+var BlurXFilter = function(gl) {
+
+    this.shader = new BlurXShader(gl);
+
+    this.blurX = 1;
+
+}
+
+Util.inherit(BlurXFilter, AbstractFilter);
+
+BlurXFilter.prototype.applyFilter = function(render, input, output, offset) {
+    render.activateShader(this.shader);
+    this.shader.setBlurX(render.gl, this.blurX);
+    this.shader.setTextureSize(render.gl, input.width, input.height);
+
+    offset = render.applyFilter(this, input, output, offset);
+
+    return offset;
+}
+
+/**
+ * blurY filter
+ **/
+var BlurYFilter = function(gl) {
+
+    this.shader = new BlurYShader(gl);
+
+    this.blurY = 1;
+
+}
+
+Util.inherit(BlurYFilter, AbstractFilter);
+
+BlurYFilter.prototype.applyFilter = function(render, input, output, offset) {
+    render.activateShader(this.shader);
+    this.shader.setBlurY(render.gl, this.blurY);
+    this.shader.setTextureSize(render.gl, input.width, input.height);
 
     offset = render.applyFilter(this, input, output, offset);
 
