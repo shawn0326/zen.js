@@ -782,7 +782,7 @@ Render.prototype.drawWebGL = function() {
                         // a temp render target
                         var flop = RenderTarget.create(gl, flip.width, flip.height);
 
-                        offset = this.applyFilter(filter, flip, flop, offset);
+                        offset = filter.applyFilter(this, flip, flop, offset);
 
                         RenderTarget.release(flip);
 
@@ -795,7 +795,7 @@ Render.prototype.drawWebGL = function() {
 
                 var renderTarget = lastData.renderTarget;
 
-                offset = this.applyFilter(filter, flip, renderTarget, offset);
+                offset = filter.applyFilter(this, flip, renderTarget, offset);
 
                 // release the render target
                 RenderTarget.release(flip);
@@ -818,8 +818,6 @@ Render.prototype.drawWebGL = function() {
  */
 Render.prototype.applyFilter = function(filter, input, output, offset) {
     var gl = this.gl;
-
-    filter.applyFilter(this);
 
     this.activateRenderTarget(output);
 
@@ -1532,7 +1530,15 @@ var AbstractFilter = function(gl) {
 }
 
 // render apply this filter
-AbstractFilter.prototype.applyFilter = function(render) {
+AbstractFilter.prototype.applyFilter = function(render, input, output, offset) {
+
+    // use shader
+
+    // apply filter
+    offset = render.applyFilter(this, input, output, offset);
+
+    // return draw offset
+    return offset;
 
 }
 
@@ -1690,9 +1696,13 @@ ColorTransformFilter.prototype.negative = function() {
     ];
 }
 
-ColorTransformFilter.prototype.applyFilter = function(render) {
+ColorTransformFilter.prototype.applyFilter = function(render, input, output, offset) {
     render.activateShader(this.shader);
     this.shader.setMatrix(render.context, this.matrix);
+
+    offset = render.applyFilter(this, input, output, offset);
+
+    return offset;
 }
 
 /**
@@ -1706,8 +1716,12 @@ var GrayFilter = function(gl) {
 
 Util.inherit(GrayFilter, AbstractFilter);
 
-GrayFilter.prototype.applyFilter = function(render) {
+GrayFilter.prototype.applyFilter = function(render, input, output, offset) {
     render.activateShader(this.shader);
+
+    offset = render.applyFilter(this, input, output, offset);
+
+    return offset;
 }
 
 /**

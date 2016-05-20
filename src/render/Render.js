@@ -326,7 +326,7 @@ Render.prototype.drawWebGL = function() {
                         // a temp render target
                         var flop = RenderTarget.create(gl, flip.width, flip.height);
 
-                        offset = this.applyFilter(filter, flip, flop, offset);
+                        offset = filter.applyFilter(this, flip, flop, offset);
 
                         RenderTarget.release(flip);
 
@@ -339,7 +339,7 @@ Render.prototype.drawWebGL = function() {
 
                 var renderTarget = lastData.renderTarget;
 
-                offset = this.applyFilter(filter, flip, renderTarget, offset);
+                offset = filter.applyFilter(this, flip, renderTarget, offset);
 
                 // release the render target
                 RenderTarget.release(flip);
@@ -362,8 +362,6 @@ Render.prototype.drawWebGL = function() {
  */
 Render.prototype.applyFilter = function(filter, input, output, offset) {
     var gl = this.gl;
-
-    filter.applyFilter(this);
 
     this.activateRenderTarget(output);
 
