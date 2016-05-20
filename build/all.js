@@ -741,7 +741,7 @@ Render.prototype.drawWebGL = function() {
                 // create a render target for filters
                 // this render target will store the render result of prev filters
                 // and as a input of this filters
-                var renderTarget = RenderTarget.create(this.gl, data.width, data.height, true);
+                var renderTarget = RenderTarget.create(this.gl, data.width, data.height);
 
                 // push filters data
                 this.filtersStack.push({
@@ -772,7 +772,7 @@ Render.prototype.drawWebGL = function() {
                         filter.applyFilter(this);
 
                         // a temp render target
-                        var flop = RenderTarget.create(gl, flip.width, flip.height, true);
+                        var flop = RenderTarget.create(gl, flip.width, flip.height);
                         this.activateRenderTarget(flop);
 
                         var size = 1;
@@ -873,14 +873,11 @@ var RenderTarget = function(gl, width, height, root) {
 
 RenderTarget._pool = [];
 
-RenderTarget.create = function(gl, width, height, bind) {
+RenderTarget.create = function(gl, width, height) {
     var renderTarget = RenderTarget._pool.pop();
     if(renderTarget) {
         if(renderTarget.width == width && renderTarget.height == height) {
-            if(bind) {
-                renderTarget.activate();
-            }
-            renderTarget.clear();// if size is right, just clear
+            renderTarget.clear(true);// if size is right, just clear
         } else {
             renderTarget.resize(width, height);
         }
@@ -904,6 +901,8 @@ RenderTarget.release = function(renderTarget) {
  * so we can recycling a render buffer
  */
 RenderTarget.prototype.resize = function(width, height) {
+    this.width = width;
+    this.height = height;
     // resize texture
     this.texture.resize(width, height, true);
 }

@@ -53,7 +53,7 @@
         var sprite = new Sprite();
         sprite.texture = texture;
         // sprite.color = 0x475846;
-        sprite.filters = [filter];
+        // sprite.filters = [filter, filter];
         sprite.x = Math.random() * 480;
         sprite.y = Math.random() * 800;
         sprite.width = 26;
@@ -63,7 +63,7 @@
         sprites.push(sprite);
         container.addChild(sprite);
     }
-    container.filters = [filter, grayFilter];
+    container.filters = [filter, filter, grayFilter, filter];
 
     console.log("render object number:", num)
 

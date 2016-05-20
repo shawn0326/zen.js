@@ -285,7 +285,7 @@ Render.prototype.drawWebGL = function() {
                 // create a render target for filters
                 // this render target will store the render result of prev filters
                 // and as a input of this filters
-                var renderTarget = RenderTarget.create(this.gl, data.width, data.height, true);
+                var renderTarget = RenderTarget.create(this.gl, data.width, data.height);
 
                 // push filters data
                 this.filtersStack.push({
@@ -316,7 +316,7 @@ Render.prototype.drawWebGL = function() {
                         filter.applyFilter(this);
 
                         // a temp render target
-                        var flop = RenderTarget.create(gl, flip.width, flip.height, true);
+                        var flop = RenderTarget.create(gl, flip.width, flip.height);
                         this.activateRenderTarget(flop);
 
                         var size = 1;
