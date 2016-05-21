@@ -4,19 +4,26 @@
  **/
 var RenderBuffer = function(gl) {
     this.gl = gl;
-    // max num of pics the render can draw
-    this.size = 2000;
+
+    // max size of vertices
+    this.maxVertices = 2000 * 4;
+    // max size of indices
+    this.maxIndices = 2000 * 6;
+    // vertex size
+    this.vertSize = 4;
+
+    // current count of vertices
+    this.verticesCount = 0;
+    // current count of Indices
+    this.indicesCount = 0;
+
     // a array to save draw data, because we just draw once on webgl in the end of the frame
     this.drawData = [];
-    // the num of current bitch pics
-    this.currentBitch = 0;
-    // the num of DrawData
-    this.currentSize = 0;
 
     // vertex array
-    this.vertices = new Float32Array(this.size * 4 * 4);
+    this.vertices = new Float32Array(this.maxVertices * this.vertSize);
     this.vertexBuffer = gl.createBuffer();
-    this.indices = new Uint16Array(this.size * 6);
+    this.indices = new Uint16Array(this.maxIndices);
     this.indexBuffer = gl.createBuffer();
 
     // transform
@@ -41,10 +48,10 @@ RenderBuffer.prototype.activate = function() {
 RenderBuffer.prototype.upload = function() {
     var gl = this.gl;
     // upload vertices and indices, i found that bufferSubData performance bad than bufferData, is that right?
-    var vertices_view = this.vertices.subarray(0, this.currentBitch * 4 * 4);
+    var vertices_view = this.vertices.subarray(0, this.verticesCount * this.vertSize);
     gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
     // TODO indices should upload just once
-    var indices_view = this.indices.subarray(0, this.currentBitch * 6);
+    var indices_view = this.indices.subarray(0, this.indicesCount);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
 };
 
@@ -52,7 +59,7 @@ RenderBuffer.prototype.upload = function() {
  * check is reached max size
  */
 RenderBuffer.prototype.reachedMaxSize = function() {
-    return this.currentBitch >= this.size;
+    return (this.verticesCount >= this.maxVertices || this.indicesCount >= this.maxIndices);
 };
 
 /**
@@ -64,35 +71,41 @@ RenderBuffer.prototype.cache = function(displayObject) {
 
     var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {
-        this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
+        this.vertices[this.verticesCount * this.vertSize + i] = vertices[i];
     }
 
     var indices = displayObject.getIndices(transform);
     for(var i = 0; i < indices.length; i++) {
-        this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
+        this.indices[this.indicesCount + i] = indices[i] + this.verticesCount;
     }
+
+    this.verticesCount += vertices.length / this.vertSize;
+    this.indicesCount += indices.length;
 
     var type = displayObject.type;
     var data = null;
     switch (type) {
         case DISPLAY_TYPE.SPRITE:
-            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].cmd != RENDER_CMD.TEXTURE || this.drawData[this.currentSize - 1].texture != displayObject.texture) {
+            if(displayObject.filters.length > 0 || this.drawData.length == 0 || this.drawData[this.drawData.length - 1].cmd != RENDER_CMD.TEXTURE || this.drawData[this.drawData.length - 1].texture != displayObject.texture) {
                 data = displayObject.getDrawData();
 
                 data.cmd = RENDER_CMD.TEXTURE;
-                this.drawData[this.currentSize] = data;
-                this.currentSize++;
+                this.drawData.push(data);
             }
+
+            this.drawData[this.drawData.length - 1].count++;
+
             break;
 
         case DISPLAY_TYPE.RECT:
-            if(displayObject.filters.length > 0 || this.currentSize == 0 || this.drawData[this.currentSize - 1].cmd != RENDER_CMD.RECT || this.drawData[this.currentSize - 1].color != displayObject.color) {
+            if(displayObject.filters.length > 0 || this.drawData.length == 0 || this.drawData[this.drawData.length - 1].cmd != RENDER_CMD.RECT || this.drawData[this.drawData.length - 1].color != displayObject.color) {
                 data = displayObject.getDrawData();
 
                 data.cmd = RENDER_CMD.RECT;
-                this.drawData[this.currentSize] = data;
-                this.currentSize++;
+                this.drawData.push(data);
             }
+
+            this.drawData[this.drawData.length - 1].count++;
 
             break;
 
@@ -101,18 +114,15 @@ RenderBuffer.prototype.cache = function(displayObject) {
             break;
     }
 
-    this.currentBitch ++;
-
-    this.drawData[this.currentSize - 1].count ++;
 };
 
 /**
  * cache blend mode
  */
 RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
-    if(this.currentSize > 0) {
+    if(this.drawData.length > 0) {
         var drawState = false;
-        for(var i = this.currentSize - 1; i >= 0; i--) {
+        for(var i = this.drawData.length - 1; i >= 0; i--) {
             var data = this.drawData[i];
 
             if(data.cmd != RENDER_CMD.BLEND) {
@@ -122,7 +132,6 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
             // since last cache has no draw，delete last cache
             if(!drawState && data.cmd == RENDER_CMD.BLEND) {
                 this.drawData.splice(i, 1);
-                this.currentSize--;
                 continue;
             }
 
@@ -141,8 +150,7 @@ RenderBuffer.prototype.cacheBlendMode = function(blendMode) {
     data.cmd = RENDER_CMD.BLEND;
     data.blendMode = blendMode;
 
-    this.drawData[this.currentSize] = data;
-    this.currentSize++;
+    this.drawData.push(data);
 }
 
 /**
@@ -156,8 +164,7 @@ RenderBuffer.prototype.cacheFiltersPush = function(filters, width, height) {
     data.width = width;
     data.height = height;
 
-    this.drawData[this.currentSize] = data;
-    this.currentSize++;
+    this.drawData.push(data);
 }
 
 /**
@@ -166,8 +173,7 @@ RenderBuffer.prototype.cacheFiltersPush = function(filters, width, height) {
 RenderBuffer.prototype.cacheFiltersPop = function() {
     var data = DrawData.getObject();
     data.cmd = RENDER_CMD.FILTERS_POP;
-    this.drawData[this.currentSize] = data;
-    this.currentSize++;
+    this.drawData.push(data);
 }
 
 /**
@@ -180,15 +186,16 @@ RenderBuffer.prototype.uploadQuad = function(width, height, transform) {
 
     var vertices = displayObject.getVertices(transform);
     for(var i = 0; i < vertices.length; i++) {
-        this.vertices[this.currentBitch * 4 * 4 + i] = vertices[i];
+        this.vertices[this.verticesCount * this.vertSize + i] = vertices[i];
     }
 
     var indices = displayObject.getIndices(transform);
     for(var i = 0; i < indices.length; i++) {
-        this.indices[this.currentBitch * 6 + i] = indices[i] + this.currentBitch * 4;
+        this.indices[this.indicesCount + i] = indices[i] + this.verticesCount;
     }
 
-    this.currentBitch ++;
+    this.verticesCount += vertices.length / this.vertSize;
+    this.indicesCount += indices.length;
 }
 
 /**
@@ -201,6 +208,7 @@ RenderBuffer.prototype.clear = function() {
     }
 
     this.drawData.length = 0;
-    this.currentBitch = 0;
-    this.currentSize = 0;
+
+    this.verticesCount = 0;
+    this.indicesCount = 0;
 };

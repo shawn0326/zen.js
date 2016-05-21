@@ -224,8 +224,8 @@ Render.prototype.drawWebGL = function() {
     this.currentRenderBuffer.upload();
 
     var offset = 0;
-    var currentSize = this.currentRenderBuffer.currentSize;
     var drawData = this.currentRenderBuffer.drawData;
+    var currentSize = drawData.length;
     for(var i = 0; i < currentSize; i++) {
         var data = drawData[i];
 
