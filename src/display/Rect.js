@@ -17,30 +17,32 @@ var Rect = function() {
 Util.inherit(Rect, DisplayObject);
 
 /**
- * get vertices data of this
+ * get coords data of this
  **/
-Rect.prototype.getVertices = function(transform) {
-    var t = transform;
+Rect.prototype.getCoords = function() {
+    var coords = [
+        0             , 0              ,
+        0 + this.width, 0              ,
+        0 + this.width, 0 + this.height,
+        0             , 0 + this.height
+    ];
 
-    var vertices = [];
+    return coords;
+}
 
-    var x = 0;
-    var y = 0;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
+/**
+ * get props data of this
+ **/
+Rect.prototype.getProps = function() {
+    // no use
+    var props = [
+        0, 0,
+        0, 0,
+        0, 0,
+        0, 0
+    ];
 
-    var x = 0 + this.width;
-    var y = 0;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
-
-    var x = 0 + this.width;
-    var y = this.y + this.height;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
-
-    var x = 0;
-    var y = this.y + this.height;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
-
-    return vertices;
+    return props;
 }
 
 /**

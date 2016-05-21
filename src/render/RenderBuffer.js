@@ -28,9 +28,6 @@ var RenderBuffer = function(gl) {
 
     // transform
     this.transform = new Matrix();
-
-    // a help display object to create quads vertices
-    this.displayObject = new Rect();
 }
 
 /**
@@ -69,18 +66,11 @@ RenderBuffer.prototype.cache = function(displayObject) {
     var gl = this.gl;
     var transform = this.transform;
 
-    var vertices = displayObject.getVertices(transform);
-    for(var i = 0; i < vertices.length; i++) {
-        this.vertices[this.verticesCount * this.vertSize + i] = vertices[i];
-    }
+    var coords = displayObject.getCoords();
+    var props = displayObject.getProps();
+    var indices = displayObject.getIndices();
 
-    var indices = displayObject.getIndices(transform);
-    for(var i = 0; i < indices.length; i++) {
-        this.indices[this.indicesCount + i] = indices[i] + this.verticesCount;
-    }
-
-    this.verticesCount += vertices.length / this.vertSize;
-    this.indicesCount += indices.length;
+    this.cacheVerticesAndIndices(coords, props, indices, transform);
 
     var type = displayObject.type;
     var data = null;
@@ -177,24 +167,74 @@ RenderBuffer.prototype.cacheFiltersPop = function() {
 }
 
 /**
- * help function to upload quad vertices
+ * help function to cache quad vertices
  */
-RenderBuffer.prototype.uploadQuad = function(width, height, transform) {
-    var displayObject = this.displayObject;
-    displayObject.width = width;
-    displayObject.height = height;
+RenderBuffer.prototype.cacheQuad = function(width, height, transform) {
+    var coords = [
+        0        , 0         ,
+        0 + width, 0         ,
+        0 + width, 0 + height,
+        0        , 0 + height
+    ];
+    var props = [
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1
+    ];
+    var indices = [
+        0, 1, 2,
+        2, 3, 0
+    ];
 
-    var vertices = displayObject.getVertices(transform);
-    for(var i = 0; i < vertices.length; i++) {
-        this.vertices[this.verticesCount * this.vertSize + i] = vertices[i];
+    this.cacheVerticesAndIndices(coords, props, indices, transform);
+}
+
+/**
+ * cache vertices and indices data
+ * @param coords {number[]} coords array
+ * @param props {number[]} props array
+ * @param indices {number[]} indices array
+ * @param transform {Matrix} global transform
+ */
+RenderBuffer.prototype.cacheVerticesAndIndices = function(coords, props, indices, transform) {
+
+    // the size of coord
+    var coordSize = 2;
+
+    // the size of props
+    var propSize = this.vertSize - coordSize;
+
+    // vertex count
+    var vertCount = coords.length / coordSize;
+
+    // check size match
+    if(vertCount != props.length / propSize) {
+        console.log("coords size and props size cannot match!");
+        return;
     }
 
-    var indices = displayObject.getIndices(transform);
+    // set vertices
+    var t = transform, x = 0, y = 0;
+    for(var i = 0; i < vertCount; i++) {
+        // xy
+        x = coords[i * coordSize + 0];
+        y = coords[i * coordSize + 1];
+        this.vertices[(this.verticesCount + i) * this.vertSize + 0] = t.a * x + t.c * y + t.tx;
+        this.vertices[(this.verticesCount + i) * this.vertSize + 1] = t.b * x + t.d * y + t.ty;
+        // props
+        for(var j = 0; j < propSize; j++) {
+            this.vertices[(this.verticesCount + i) * this.vertSize + coordSize + j] = props[i * propSize + j];
+        }
+    }
+
+    // set indices
     for(var i = 0; i < indices.length; i++) {
         this.indices[this.indicesCount + i] = indices[i] + this.verticesCount;
     }
 
-    this.verticesCount += vertices.length / this.vertSize;
+    // add count
+    this.verticesCount += vertCount;
     this.indicesCount += indices.length;
 }
 

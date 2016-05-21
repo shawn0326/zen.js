@@ -17,30 +17,32 @@ var Sprite = function() {
 Util.inherit(Sprite, DisplayObject);
 
 /**
- * get vertices data of this
+ * get coords data of this
  **/
-Sprite.prototype.getVertices = function(transform) {
-    var t = transform;
+Sprite.prototype.getCoords = function() {
+    var coords = [
+        0             , 0              ,
+        0 + this.width, 0              ,
+        0 + this.width, 0 + this.height,
+        0             , 0 + this.height
+    ];
 
-    var vertices = [];
+    return coords;
+}
 
-    var x = 0;
-    var y = 0;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
+/**
+ * get props data of this
+ **/
+Sprite.prototype.getProps = function() {
+    // TODO uv should coculate by source coords
+    var props = [
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1
+    ];
 
-    var x = 0 + this.width;
-    var y = 0;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
-
-    var x = 0 + this.width;
-    var y = 0 + this.height;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
-
-    var x = 0;
-    var y = 0 + this.height;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
-
-    return vertices;
+    return props;
 }
 
 /**
