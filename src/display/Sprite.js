@@ -1,6 +1,6 @@
 /**
- * A Sample Sprite Class
- * in this demo, it just a picture -_-
+ * Sprite Class
+ * sprite to show picture
  **/
 var Sprite = function() {
 
@@ -11,36 +11,82 @@ var Sprite = function() {
     // webGL texture
     this.texture = null;
 
+    // is source frame set
+    this.sourceFrameSet = false;
+    // source frame
+    this.sourceFrame = new Rectangle();
+
 }
 
 // inherit
 Util.inherit(Sprite, DisplayObject);
 
 /**
- * get vertices data of this
+ * set source frame of this
+ */
+Sprite.prototype.setSourceFrame = function(x, y, width, height) {
+    this.sourceFrameSet = true;
+
+    if(arguments.length == 1) {
+        // if argument is a rectangle
+        this.sourceFrame.copy(x);
+    } else {
+
+        this.sourceFrame.set(x, y, width, height);
+    }
+
+}
+
+/**
+ * get coords data of this
  **/
-Sprite.prototype.getVertices = function(transform) {
-    var t = transform;
+Sprite.prototype.getCoords = function() {
+    var coords = [
+        0             , 0              ,
+        0 + this.width, 0              ,
+        0 + this.width, 0 + this.height,
+        0             , 0 + this.height
+    ];
 
-    var vertices = [];
+    return coords;
+}
 
-    var x = 0;
-    var y = 0;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 0);
+/**
+ * get props data of this
+ * uv datas
+ **/
+Sprite.prototype.getProps = function() {
+    var textureInit = false;
+    var textureWidth = 0;
+    var textureHeight = 0;
 
-    var x = 0 + this.width;
-    var y = 0;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 0);
+    if(this.texture) {
+        textureInit = this.texture.isInit;
+        textureWidth = this.texture.width;
+        textureHeight = this.texture.height;
+    }
 
-    var x = 0 + this.width;
-    var y = 0 + this.height;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 1, 1);
+    // if not set source frame, set source frame by texture
+    // if change texture, this will not auto change
+    if(!this.sourceFrameSet) {
+        if(textureInit) {
+            this.setSourceFrame(0, 0, textureWidth, textureHeight);
+        }
+    }
 
-    var x = 0;
-    var y = 0 + this.height;
-    vertices.push(t.a * x + t.c * y + t.tx, t.b * x + t.d * y + t.ty, 0, 1);
+    var uvx = this.sourceFrame.x / textureWidth;
+    var uvy = this.sourceFrame.y / textureHeight;
+    var uvw = this.sourceFrame.width / textureWidth;
+    var uvh = this.sourceFrame.height / textureHeight;
 
-    return vertices;
+    var props = [
+        uvx      , uvy      ,
+        uvx + uvw, uvy      ,
+        uvx + uvw, uvy + uvh,
+        uvx      , uvy + uvh
+    ];
+
+    return props;
 }
 
 /**

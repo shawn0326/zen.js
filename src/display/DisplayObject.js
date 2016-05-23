@@ -30,9 +30,16 @@ var DisplayObject = function() {
 }
 
 /**
- * get vertices data of this
+ * get coords data of this
  **/
-DisplayObject.prototype.getVertices = function() {
+DisplayObject.prototype.getCoords = function() {
+
+}
+
+/**
+ * get props data of this
+ **/
+DisplayObject.prototype.getProps = function() {
 
 }
 

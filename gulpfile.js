@@ -1,14 +1,15 @@
 var gulp = require('gulp');
-var uglify = require('gulp-uglify');//js压缩
-var concat = require('gulp-concat');//文件合并
-var rename = require('gulp-rename');//文件更名
-var notify = require('gulp-notify');//提示信息
+var uglify = require('gulp-uglify');
+var concat = require('gulp-concat');
+var rename = require('gulp-rename');
+var notify = require('gulp-notify');
 
 gulp.task('default', function() {
     gulp.src([
         "src/Const.js",
         "src/State.js",
         "src/math/Matrix.js",
+        "src/math/Rectangle.js",
         "src/Util.js",
         "src/render/DrawData.js",
         "src/texture/Texture.js",

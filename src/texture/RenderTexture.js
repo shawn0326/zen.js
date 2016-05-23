@@ -27,5 +27,8 @@ RenderTexture.prototype.resize = function(width, height, bind) {
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
+    this.width = width;
+    this.height = height;
+
     this.isInit = true;
 }

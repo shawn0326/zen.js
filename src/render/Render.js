@@ -182,7 +182,7 @@ Render.prototype._render = function(displayObject) {
                 this.flush();
             }
 
-            this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
+            this.currentRenderBuffer.cacheQuad(displayObject.width, displayObject.height, transform);
         }
 
         transform.copy(filterMatrix);
@@ -193,7 +193,7 @@ Render.prototype._render = function(displayObject) {
         }
 
         // last time, push vertices by real transform
-        this.currentRenderBuffer.uploadQuad(displayObject.width, displayObject.height, transform);
+        this.currentRenderBuffer.cacheQuad(displayObject.width, displayObject.height, transform);
 
         this.currentRenderBuffer.cacheFiltersPop();
     }
@@ -224,8 +224,8 @@ Render.prototype.drawWebGL = function() {
     this.currentRenderBuffer.upload();
 
     var offset = 0;
-    var currentSize = this.currentRenderBuffer.currentSize;
     var drawData = this.currentRenderBuffer.drawData;
+    var currentSize = drawData.length;
     for(var i = 0; i < currentSize; i++) {
         var data = drawData[i];
 
