@@ -11,7 +11,11 @@ var RENDER_CMD = {
 
     FILTERS_PUSH: 3,
 
-    FILTERS_POP: 4
+    FILTERS_POP: 4,
+
+    MASK_PUSH: 5,
+
+    MASK_POP: 6
 
 }
 

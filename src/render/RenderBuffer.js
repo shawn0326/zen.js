@@ -63,7 +63,6 @@ RenderBuffer.prototype.reachedMaxSize = function() {
  * cache draw datas from a displayObject
  */
 RenderBuffer.prototype.cache = function(displayObject) {
-    var gl = this.gl;
     var transform = this.transform;
 
     var coords = displayObject.getCoords();

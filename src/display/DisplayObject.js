@@ -27,6 +27,8 @@ var DisplayObject = function() {
 
     this.blend = BLEND_MODE.SOURCE_OVER;
 
+    this.mask = null;
+
 }
 
 /**

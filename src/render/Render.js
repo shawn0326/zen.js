@@ -147,6 +147,13 @@ Render.prototype._render = function(displayObject) {
     }
 
     // if mask, pushMask
+    if(displayObject.mask) {
+        // TODO handle mask
+
+        // cache rect
+
+        // cacheMaskPush
+    }
 
     if(displayObject.type == DISPLAY_TYPE.CONTAINER) {// cache children
 
@@ -199,6 +206,11 @@ Render.prototype._render = function(displayObject) {
     }
 
     // if mask, popMask
+    if(displayObject.mask) {
+        // TODO handle mask
+
+        // cacheMaskPop
+    }
 
     // restore matrix
     transform.copy(matrix);
@@ -343,6 +355,18 @@ Render.prototype.drawWebGL = function() {
 
                 // release the render target
                 RenderTarget.release(flip);
+
+                break;
+
+            case RENDER_CMD.MASK_PUSH:
+
+                // TODO handle mask push
+
+                break;
+
+            case RENDER_CMD.MASK_POP:
+
+                // TODO handle mask pop
 
                 break;
 
