@@ -16,6 +16,10 @@ var DrawData = function() {
 
     this.blendMode = "";
 
+    this.filter = null;
+
+    this.mask = null;
+
 };
 
 // draw data object pool
@@ -38,6 +42,8 @@ DrawData.returnObject = function(drawData) {
     drawData.transform = null;
     drawData.count = 0;
     drawData.blendMode = "";
+    drawData.filter = null;
+    drawData.mask = null;
 
     DrawData.pool.push(drawData);
 

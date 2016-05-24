@@ -11,7 +11,11 @@ var RENDER_CMD = {
 
     FILTERS_PUSH: 3,
 
-    FILTERS_POP: 4
+    FILTERS_POP: 4,
+
+    MASK_PUSH: 5,
+
+    MASK_POP: 6
 
 }
 
@@ -336,6 +340,10 @@ var DrawData = function() {
 
     this.blendMode = "";
 
+    this.filter = null;
+
+    this.mask = null;
+
 };
 
 // draw data object pool
@@ -358,6 +366,8 @@ DrawData.returnObject = function(drawData) {
     drawData.transform = null;
     drawData.count = 0;
     drawData.blendMode = "";
+    drawData.filter = null;
+    drawData.mask = null;
 
     DrawData.pool.push(drawData);
 
@@ -526,6 +536,9 @@ var Render = function(view) {
     // filter
     this.filtersStack = [];
 
+    // draw mask count
+    this.maskCount = 0;
+
     // init webgl
     var gl = this.gl;
     gl.disable(gl.STENCIL_TEST);
@@ -633,7 +646,22 @@ Render.prototype._render = function(displayObject) {
         this.currentRenderBuffer.cacheFiltersPush(displayObject.filters, displayObject.width, displayObject.height);
     }
 
+    // TODO if need filter mask, renderTarget should add stencil buffer
+    // now use mask and filter at same time will cause bug
+
     // if mask, pushMask
+    if(displayObject.mask) {
+        // TODO handle mask
+        var mask = displayObject.mask;
+
+        if(this.currentRenderBuffer.reachedMaxSize()) {
+            this.flush();
+        }
+
+        this.currentRenderBuffer.cacheQuad(mask.x, mask.y, mask.width, mask.height, transform);
+
+        this.currentRenderBuffer.cacheMaskPush(displayObject.mask);
+    }
 
     if(displayObject.type == DISPLAY_TYPE.CONTAINER) {// cache children
 
@@ -660,6 +688,20 @@ Render.prototype._render = function(displayObject) {
         this.currentRenderBuffer.cacheBlendMode(this.defaultBlendMode);
     }
 
+    // if mask, popMask
+    if(displayObject.mask) {
+        // TODO handle mask
+        var mask = displayObject.mask;
+
+        if(this.currentRenderBuffer.reachedMaxSize()) {
+            this.flush();
+        }
+
+        this.currentRenderBuffer.cacheQuad(mask.x, mask.y, mask.width, mask.height, transform);
+
+        this.currentRenderBuffer.cacheMaskPop();
+    }
+
     // if filter, popFilters, restoreMatrix
     if(displayObject.filters.length > 0) {
 
@@ -669,7 +711,7 @@ Render.prototype._render = function(displayObject) {
                 this.flush();
             }
 
-            this.currentRenderBuffer.cacheQuad(displayObject.width, displayObject.height, transform);
+            this.currentRenderBuffer.cacheQuad(0, 0, displayObject.width, displayObject.height, transform);
         }
 
         transform.copy(filterMatrix);
@@ -680,12 +722,10 @@ Render.prototype._render = function(displayObject) {
         }
 
         // last time, push vertices by real transform
-        this.currentRenderBuffer.cacheQuad(displayObject.width, displayObject.height, transform);
+        this.currentRenderBuffer.cacheQuad(0, 0, displayObject.width, displayObject.height, transform);
 
         this.currentRenderBuffer.cacheFiltersPop();
     }
-
-    // if mask, popMask
 
     // restore matrix
     transform.copy(matrix);
@@ -830,6 +870,71 @@ Render.prototype.drawWebGL = function() {
 
                 // release the render target
                 RenderTarget.release(flip);
+
+                break;
+
+            case RENDER_CMD.MASK_PUSH:
+
+                // TODO handle mask push
+                var size = 1;
+
+                if(this.maskCount == 0) {
+                    gl.enable(gl.STENCIL_TEST);
+                    gl.clear(gl.STENCIL_BUFFER_BIT);
+                }
+
+                var level = this.maskCount;
+                this.maskCount++;
+
+                gl.colorMask(false, false, false, false);
+                gl.stencilFunc(gl.EQUAL, level, 0xFF);
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+
+                this.activateShader(this.primitiveShader);
+
+                this.primitiveShader.fillColor(gl, 0x000000);
+
+                gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                gl.stencilFunc(gl.EQUAL, level + 1, 0xFF);
+                gl.colorMask(true, true, true, true);
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+                this.drawCall++;
+
+                offset += size * 6;
+
+                break;
+
+            case RENDER_CMD.MASK_POP:
+
+                // TODO handle mask pop
+                var size = 1;
+
+                var level = this.maskCount;
+                this.maskCount--;
+
+                gl.colorMask(false, false, false, false);
+                gl.stencilFunc(gl.EQUAL, level + 1, 0xFF);
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.DECR);
+
+                this.activateShader(this.primitiveShader);
+
+                this.primitiveShader.fillColor(gl, 0x000000);
+
+                gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
+
+                gl.stencilFunc(gl.EQUAL, level, 0xFF);
+                gl.colorMask(true, true, true, true);
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+                if(this.maskCount == 0) {
+                    gl.disable(gl.STENCIL_TEST);
+                }
+
+                this.drawCall++;
+
+                offset += size * 6;
 
                 break;
 
@@ -1049,14 +1154,13 @@ RenderBuffer.prototype.upload = function() {
  * check is reached max size
  */
 RenderBuffer.prototype.reachedMaxSize = function() {
-    return (this.verticesCount >= this.maxVertices || this.indicesCount >= this.maxIndices);
+    return (this.verticesCount >= this.maxVertices - 4 || this.indicesCount >= this.maxIndices - 6);// TODO minus max num buffer can cache
 };
 
 /**
  * cache draw datas from a displayObject
  */
 RenderBuffer.prototype.cache = function(displayObject) {
-    var gl = this.gl;
     var transform = this.transform;
 
     var coords = displayObject.getCoords();
@@ -1160,14 +1264,35 @@ RenderBuffer.prototype.cacheFiltersPop = function() {
 }
 
 /**
+ * cache mask push
+ */
+RenderBuffer.prototype.cacheMaskPush = function(mask) {
+    var data = DrawData.getObject();
+    data.cmd = RENDER_CMD.MASK_PUSH;
+
+    data.mask = mask;
+
+    this.drawData.push(data);
+}
+
+/**
+ * cache mask pop
+ */
+RenderBuffer.prototype.cacheMaskPop = function() {
+    var data = DrawData.getObject();
+    data.cmd = RENDER_CMD.MASK_POP;
+    this.drawData.push(data);
+}
+
+/**
  * help function to cache quad vertices
  */
-RenderBuffer.prototype.cacheQuad = function(width, height, transform) {
+RenderBuffer.prototype.cacheQuad = function(x, y, width, height, transform) {
     var coords = [
-        0        , 0         ,
-        0 + width, 0         ,
-        0 + width, 0 + height,
-        0        , 0 + height
+        x        , y         ,
+        x + width, y         ,
+        x + width, y + height,
+        x        , y + height
     ];
     var props = [
         0, 0,
@@ -2045,6 +2170,8 @@ var DisplayObject = function() {
     this.filters = [];
 
     this.blend = BLEND_MODE.SOURCE_OVER;
+
+    this.mask = null;
 
 }
 

@@ -56,7 +56,7 @@ RenderBuffer.prototype.upload = function() {
  * check is reached max size
  */
 RenderBuffer.prototype.reachedMaxSize = function() {
-    return (this.verticesCount >= this.maxVertices || this.indicesCount >= this.maxIndices);
+    return (this.verticesCount >= this.maxVertices - 4 || this.indicesCount >= this.maxIndices - 6);// TODO minus max num buffer can cache
 };
 
 /**
@@ -166,14 +166,35 @@ RenderBuffer.prototype.cacheFiltersPop = function() {
 }
 
 /**
+ * cache mask push
+ */
+RenderBuffer.prototype.cacheMaskPush = function(mask) {
+    var data = DrawData.getObject();
+    data.cmd = RENDER_CMD.MASK_PUSH;
+
+    data.mask = mask;
+
+    this.drawData.push(data);
+}
+
+/**
+ * cache mask pop
+ */
+RenderBuffer.prototype.cacheMaskPop = function() {
+    var data = DrawData.getObject();
+    data.cmd = RENDER_CMD.MASK_POP;
+    this.drawData.push(data);
+}
+
+/**
  * help function to cache quad vertices
  */
-RenderBuffer.prototype.cacheQuad = function(width, height, transform) {
+RenderBuffer.prototype.cacheQuad = function(x, y, width, height, transform) {
     var coords = [
-        0        , 0         ,
-        0 + width, 0         ,
-        0 + width, 0 + height,
-        0        , 0 + height
+        x        , y         ,
+        x + width, y         ,
+        x + width, y + height,
+        x        , y + height
     ];
     var props = [
         0, 0,
