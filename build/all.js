@@ -915,7 +915,7 @@ Render.prototype.drawWebGL = function() {
                 this.maskCount--;
 
                 gl.colorMask(false, false, false, false);
-                gl.stencilFunc(gl.EQUAL, level + 1, 0xFF);
+                gl.stencilFunc(gl.EQUAL, level, 0xFF);
                 gl.stencilOp(gl.KEEP, gl.KEEP, gl.DECR);
 
                 this.activateShader(this.primitiveShader);
@@ -924,7 +924,7 @@ Render.prototype.drawWebGL = function() {
 
                 gl.drawElements(gl.TRIANGLES, size * 6, gl.UNSIGNED_SHORT, offset * 2);
 
-                gl.stencilFunc(gl.EQUAL, level, 0xFF);
+                gl.stencilFunc(gl.EQUAL, level - 1, 0xFF);
                 gl.colorMask(true, true, true, true);
                 gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
