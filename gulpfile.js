@@ -29,6 +29,7 @@ gulp.task('default', function() {
         "src/filters/GrayFilter.js",
         "src/filters/BlurXFilter.js",
         "src/filters/BlurYFilter.js",
+        "src/event/EventDispatcher.js",
         "src/display/DisplayObject.js",
         "src/display/DisplayObjectContainer.js",
         "src/display/Sprite.js",

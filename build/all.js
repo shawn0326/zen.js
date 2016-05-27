@@ -2143,10 +2143,68 @@ BlurYFilter.prototype.applyFilter = function(render, input, output, offset) {
 }
 
 /**
+ * EventDispatcher Class
+ **/
+var EventDispatcher = function() {
+    this.eventMap = {};
+}
+
+/**
+ * add a event listener
+ **/
+EventDispatcher.prototype.addEventListener = function(type, listener, thisObject) {
+    var list = this.eventMap[type];
+
+    if(!list) {
+        list = this.eventMap[type] = [];
+    }
+
+    list.push({listener: listener, thisObject: thisObject});
+}
+
+/**
+ * remove a event listener
+ **/
+EventDispatcher.prototype.removeEventListener = function(type, listener, thisObject) {
+    var list = this.eventMap[type];
+
+    if(!list) {
+        return;
+    }
+
+    for(var i = 0, len = list.length; i < len; i++) {
+        var bin = list[i];
+        if(bin.listener == listener && bin.thisObject == thisObject) {
+            list.splice(i, 1);
+            break;
+        }
+    }
+}
+
+/**
+ * dispatch a event
+ **/
+EventDispatcher.prototype.dispatchEvent = function(type) {
+    var list = this.eventMap[type];
+
+    if(!list) {
+        return;
+    }
+
+    for(var i = 0, len = list.length; i < len; i++) {
+        var bin = list[i];
+        bin.listener.call(bin.thisObject);
+    }
+}
+
+/**
  * DisplayObject Class
  * base class of all display objects
+ * inherit from EventDispatcher, so display object can dispatcher event
  **/
 var DisplayObject = function() {
+
+    DisplayObject.superClass.constructor.call(this);
 
     // type of this display object
     // typeof DISPLAY_TYPE
@@ -2173,7 +2231,12 @@ var DisplayObject = function() {
 
     this.mask = null;
 
+    this._bounds = new Rectangle();
+
 }
+
+// inherit
+Util.inherit(DisplayObject, EventDispatcher);
 
 /**
  * get coords data of this
@@ -2222,6 +2285,29 @@ DisplayObject.prototype.getTransformMatrix = function() {
     this.transform.translate(this.x, this.y);
 
     return this.transform;
+}
+
+/**
+ * get bounds
+ **/
+DisplayObject.prototype.getBounds = function() {
+    var bounds = this._bounds;
+
+    // TODO not considered transform
+    bounds.x = this.x - this.anchorX * this.width;
+    bounds.y = this.y - this.anchorY * this.height;
+    bounds.width = this.width;
+    bounds.height = this.height;
+
+    return this._bounds;
+}
+
+/**
+ * hit test
+ **/
+DisplayObject.prototype.hitTest = function(x, y) {
+    var bounds = this.getBounds();
+    return (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height);
 }
 
 /**
