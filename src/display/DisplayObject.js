@@ -34,6 +34,8 @@ var DisplayObject = function() {
 
     this._bounds = new Rectangle();
 
+    this.parent = null;
+
 }
 
 // inherit
@@ -108,5 +110,23 @@ DisplayObject.prototype.getBounds = function() {
  **/
 DisplayObject.prototype.hitTest = function(x, y) {
     var bounds = this.getBounds();
-    return (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height);
+
+    if(bounds.contains(x, y)) {
+        return this;
+    } else {
+        return null;
+    }
+}
+
+/**
+ * get event propagation list
+ **/
+DisplayObject.prototype.getPropagationList = function() {
+    var list = [];
+    var target = this;
+    while (target) {
+        list.push(target);
+        target = target.parent;
+    }
+    return list;
 }

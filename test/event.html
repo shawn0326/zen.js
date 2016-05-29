@@ -37,15 +37,37 @@
     sprite.height = 100;
     container.addChild(sprite);
 
+    var sprite2 = new Sprite();
+    sprite2.texture = texture;
+    sprite2.x = 400;
+    sprite2.y = 400;
+    sprite2.anchorX = 0.5;
+    sprite2.anchorY = 0.5;
+    sprite2.width = 100;
+    sprite2.height = 100;
+    container.addChild(sprite2);
+
     var listener = function() {
         console.log("click");
     }
+    var listener2 = function() {
+        console.log("click2");
+    }
+    var listener3 = function() {
+        console.log("container click");
+    }
     sprite.addEventListener("click", listener, this);
+    sprite2.addEventListener("click", listener2, this);
+    container.addEventListener("click", listener3, this);
 
     document.getElementById("canvas").addEventListener("click", function(e) {
-        console.log(e.pageX, 800 - e.pageY)
-        if(sprite.hitTest(e.pageX, 800 - e.pageY)) {
-            sprite.dispatchEvent("click");
+        var target = container.hitTest(e.pageX, 800 - e.pageY);
+        if(target) {
+            var list = target.getPropagationList();
+            for(var i = 0; i < list.length; i++) {
+                var object = list[i];
+                object.dispatchEvent("click");
+            }
         }
         // sprite.removeEventListener("click", listener, this);
     }.bind(this));

@@ -305,6 +305,13 @@ Rectangle.prototype.copy = function(rectangle) {
     this.height = rectangle.height;
 }
 
+/**
+ * is this rectangle contains a point
+ */
+Rectangle.prototype.contains = function(x, y) {
+    return (x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height);
+}
+
 var Util = {
 
     /**
@@ -2233,6 +2240,8 @@ var DisplayObject = function() {
 
     this._bounds = new Rectangle();
 
+    this.parent = null;
+
 }
 
 // inherit
@@ -2307,7 +2316,25 @@ DisplayObject.prototype.getBounds = function() {
  **/
 DisplayObject.prototype.hitTest = function(x, y) {
     var bounds = this.getBounds();
-    return (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height);
+
+    if(bounds.contains(x, y)) {
+        return this;
+    } else {
+        return null;
+    }
+}
+
+/**
+ * get event propagation list
+ **/
+DisplayObject.prototype.getPropagationList = function() {
+    var list = [];
+    var target = this;
+    while (target) {
+        list.push(target);
+        target = target.parent;
+    }
+    return list;
 }
 
 /**
@@ -2330,22 +2357,41 @@ Util.inherit(DisplayObjectContainer, DisplayObject);
 /**
  * add child
  **/
-DisplayObject.prototype.addChild = function(displayObject) {
+DisplayObjectContainer.prototype.addChild = function(displayObject) {
     this.children.push(displayObject);
+    displayObject.parent = this;
 }
 
 /**
  * remove child
  **/
-DisplayObject.prototype.removeChild = function(displayObject) {
+DisplayObjectContainer.prototype.removeChild = function(displayObject) {
     for(var i = 0; i < this.children.length;) {
         var child = this.children[i];
         if(child == displayObject) {
             this.children.splice(i, 1);
+            child.parent = null;
             break;
         }
         i++;
     }
+}
+
+/**
+ * hit test(rewrite)
+ **/
+DisplayObjectContainer.prototype.hitTest = function(x, y) {
+    var target = null;
+
+    for(var i = this.children.length - 1; i >= 0; i--) {
+        var child = this.children[i];
+        target = child.hitTest(x, y);
+        if(target) {
+            break;
+        }
+    }
+
+    return target || DisplayObjectContainer.superClass.hitTest.call(this);
 }
 
 /**

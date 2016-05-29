@@ -18,20 +18,39 @@ Util.inherit(DisplayObjectContainer, DisplayObject);
 /**
  * add child
  **/
-DisplayObject.prototype.addChild = function(displayObject) {
+DisplayObjectContainer.prototype.addChild = function(displayObject) {
     this.children.push(displayObject);
+    displayObject.parent = this;
 }
 
 /**
  * remove child
  **/
-DisplayObject.prototype.removeChild = function(displayObject) {
+DisplayObjectContainer.prototype.removeChild = function(displayObject) {
     for(var i = 0; i < this.children.length;) {
         var child = this.children[i];
         if(child == displayObject) {
             this.children.splice(i, 1);
+            child.parent = null;
             break;
         }
         i++;
     }
+}
+
+/**
+ * hit test(rewrite)
+ **/
+DisplayObjectContainer.prototype.hitTest = function(x, y) {
+    var target = null;
+
+    for(var i = this.children.length - 1; i >= 0; i--) {
+        var child = this.children[i];
+        target = child.hitTest(x, y);
+        if(target) {
+            break;
+        }
+    }
+
+    return target || DisplayObjectContainer.superClass.hitTest.call(this);
 }
