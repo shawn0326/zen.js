@@ -191,3 +191,41 @@ Matrix.prototype.copy = function(matrix) {
     this.tx = matrix.tx;
     this.ty = matrix.ty;
 }
+
+/**
+ * invert matrix
+ **/
+Matrix.prototype.invert = function() {
+    var a = this.a;
+    var b  = this.b;
+    var c  = this.c;
+    var d = this.d;
+    var tx = this.tx;
+    var ty = this.ty;
+    if (b == 0 && c == 0) {
+        this.b = this.c = 0;
+        if(a==0||d==0){
+            this.a = this.d = this.tx = this.ty = 0;
+        }
+        else{
+            a = this.a = 1 / a;
+            d = this.d = 1 / d;
+            this.tx = -a * tx;
+            this.ty = -d * ty;
+        }
+
+        return;
+    }
+    var determinant = a * d - b * c;
+    if (determinant == 0) {
+        this.identity();
+        return;
+    }
+    determinant = 1 / determinant;
+    var k = this.a =  d * determinant;
+    b = this.b = -b * determinant;
+    c = this.c = -c * determinant;
+    d = this.d =  a * determinant;
+    this.tx = -(k * tx + c * ty);
+    this.ty = -(b * tx + d * ty);
+}

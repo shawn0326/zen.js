@@ -32,9 +32,13 @@ var DisplayObject = function() {
 
     this.mask = null;
 
-    this._bounds = new Rectangle();
+    this._contentBounds = new Rectangle();
 
     this.parent = null;
+
+    this.concatenatedMatrix = new Matrix();
+
+    this.invertConcatenatedMatrix = new Matrix();
 
 }
 
@@ -91,27 +95,32 @@ DisplayObject.prototype.getTransformMatrix = function() {
 }
 
 /**
- * get bounds
+ * get content bounds
  **/
-DisplayObject.prototype.getBounds = function() {
-    var bounds = this._bounds;
+DisplayObject.prototype.getContentBounds = function() {
+    var bounds = this._contentBounds;
 
-    // TODO not considered transform
-    bounds.x = this.x - this.anchorX * this.width;
-    bounds.y = this.y - this.anchorY * this.height;
+    bounds.x = 0;
+    bounds.y = 0;
     bounds.width = this.width;
     bounds.height = this.height;
 
-    return this._bounds;
+    return this._contentBounds;
 }
 
 /**
  * hit test
  **/
 DisplayObject.prototype.hitTest = function(x, y) {
-    var bounds = this.getBounds();
+    var bounds = this.getContentBounds();
 
-    if(bounds.contains(x, y)) {
+    var matrix = this.getInvertedConcatenatedMatrix();
+
+    // change global position to local
+    var localX = matrix.a * x + matrix.c * y + matrix.tx;
+    var localY = matrix.b * x + matrix.d * y + matrix.ty;
+
+    if(bounds.contains(localX, localY)) {
         return this;
     } else {
         return null;
@@ -129,4 +138,28 @@ DisplayObject.prototype.getPropagationList = function() {
         target = target.parent;
     }
     return list;
+}
+
+/**
+ * get concatenated matrix
+ */
+DisplayObject.prototype.getConcatenatedMatrix = function() {
+    this.concatenatedMatrix.copy(this.getTransformMatrix());
+
+    if(this.parent) {
+        this.concatenatedMatrix.prepend(this.parent.getConcatenatedMatrix());
+    }
+
+    return this.concatenatedMatrix;
+}
+
+/**
+ * get inverted concatenated matrix
+ */
+DisplayObject.prototype.getInvertedConcatenatedMatrix = function() {
+    this.invertConcatenatedMatrix.copy(this.getConcatenatedMatrix());
+
+    this.invertConcatenatedMatrix.invert();
+
+    return this.invertConcatenatedMatrix;
 }

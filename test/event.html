@@ -26,6 +26,8 @@
     var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 
     var container = new DisplayObjectContainer();
+    container.x = 100;
+    container.y = 100;
 
     var sprite = new Sprite();
     sprite.texture = texture;
@@ -35,6 +37,8 @@
     sprite.anchorY = 0.5;
     sprite.width = 100;
     sprite.height = 100;
+    sprite.scaleX = 2;
+    sprite.rotation = 1;
     container.addChild(sprite);
 
     var sprite2 = new Sprite();
@@ -61,7 +65,7 @@
     container.addEventListener("click", listener3, this);
 
     document.getElementById("canvas").addEventListener("click", function(e) {
-        var target = container.hitTest(e.pageX, 800 - e.pageY);
+        var target = container.hitTest(e.pageX, render.height - e.pageY);
         if(target) {
             var list = target.getPropagationList();
             for(var i = 0; i < list.length; i++) {
