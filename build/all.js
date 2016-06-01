@@ -2230,6 +2230,13 @@ EventDispatcher.prototype.removeEventListener = function(type, listener, thisObj
  * dispatch a event
  **/
 EventDispatcher.prototype.dispatchEvent = function(type) {
+    this.notifyListener(type);
+}
+
+/**
+ * notify listener
+ **/
+EventDispatcher.prototype.notifyListener = function(type) {
     var list = this.eventMap[type];
 
     if(!list) {
@@ -2368,6 +2375,17 @@ DisplayObject.prototype.hitTest = function(x, y) {
         return this;
     } else {
         return null;
+    }
+}
+
+/**
+ * dispatch a event
+ **/
+DisplayObject.prototype.dispatchEvent = function(type) {
+    var list = this.getPropagationList();
+    for(var i = 0; i < list.length; i++) {
+        var object = list[i];
+        object.notifyListener(type);
     }
 }
 

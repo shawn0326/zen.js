@@ -41,6 +41,13 @@ EventDispatcher.prototype.removeEventListener = function(type, listener, thisObj
  * dispatch a event
  **/
 EventDispatcher.prototype.dispatchEvent = function(type) {
+    this.notifyListener(type);
+}
+
+/**
+ * notify listener
+ **/
+EventDispatcher.prototype.notifyListener = function(type) {
     var list = this.eventMap[type];
 
     if(!list) {

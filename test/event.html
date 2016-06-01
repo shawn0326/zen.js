@@ -64,19 +64,6 @@
     sprite2.addEventListener("click", listener2, this);
     container.addEventListener("click", listener3, this);
 
-    document.getElementById("canvas").addEventListener("click", function(e) {
-        var target = container.hitTest(e.pageX, render.height - e.pageY);
-        if(target) {
-            var list = target.getPropagationList();
-            for(var i = 0; i < list.length; i++) {
-                var object = list[i];
-                object.dispatchEvent("click");
-            }
-        }
-        // sprite.removeEventListener("click", listener, this);
-    }.bind(this));
-
-
     // fps
     var state = new State();
     document.body.appendChild(state.getDom());
@@ -93,6 +80,17 @@
     }
 
     loop();
+
+    function addTouchEvent(render, displayObject) {
+        render.view.addEventListener("click", function(e) {
+            var target = displayObject.hitTest(e.pageX, render.height - e.pageY);
+            if(target) {
+                target.dispatchEvent("click");
+            }
+        }.bind(this));
+    }
+
+    addTouchEvent(render, container);
 
 </script>
 </html>
