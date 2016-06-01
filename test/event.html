@@ -51,18 +51,21 @@
     sprite2.height = 100;
     container.addChild(sprite2);
 
-    var listener = function() {
+    var listener = function(e) {
         console.log("click");
+        console.log(e);
     }
-    var listener2 = function() {
+    var listener2 = function(e) {
         console.log("click2");
+        console.log(e);
     }
-    var listener3 = function() {
+    var listener3 = function(e) {
         console.log("container click");
+        console.log(e);
     }
-    sprite.addEventListener("click", listener, this);
-    sprite2.addEventListener("click", listener2, this);
-    container.addEventListener("click", listener3, this);
+    sprite.addEventListener(TouchEvent.TOUCH_TAP, listener, this);
+    sprite2.addEventListener(TouchEvent.TOUCH_TAP, listener2, this);
+    container.addEventListener(TouchEvent.TOUCH_TAP, listener3, this);
 
     // fps
     var state = new State();
@@ -84,8 +87,9 @@
     function addTouchEvent(render, displayObject) {
         render.view.addEventListener("click", function(e) {
             var target = displayObject.hitTest(e.pageX, render.height - e.pageY);
+
             if(target) {
-                target.dispatchEvent("click");
+                TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_TAP, e.pageX, render.height - e.pageY);
             }
         }.bind(this));
     }

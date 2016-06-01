@@ -2,11 +2,18 @@
  * Event Class
  **/
 var Event = function() {
+    // event type
+    this.type = "";
     // event target
     this.target = null;
 }
 
 /**
- * touch tap event
+ * create and dispatch event
  **/
-Event.TOUCH_TAP = "touch_tap";
+Event.dispatchEvent = function(target, type) {
+    var event = new Event();
+    event.type = type;
+    event.target = target;
+    target.dispatchEvent(event);
+}

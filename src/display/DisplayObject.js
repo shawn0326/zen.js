@@ -130,11 +130,11 @@ DisplayObject.prototype.hitTest = function(x, y) {
 /**
  * dispatch a event (rewrite)
  **/
-DisplayObject.prototype.dispatchEvent = function(type) {
+DisplayObject.prototype.dispatchEvent = function(event) {
     var list = this.getPropagationList();
     for(var i = 0; i < list.length; i++) {
         var object = list[i];
-        object.notifyListener(type);
+        object.notifyListener(event);
     }
 }
 

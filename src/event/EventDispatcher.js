@@ -40,15 +40,15 @@ EventDispatcher.prototype.removeEventListener = function(type, listener, thisObj
 /**
  * dispatch a event
  **/
-EventDispatcher.prototype.dispatchEvent = function(type) {
-    this.notifyListener(type);
+EventDispatcher.prototype.dispatchEvent = function(event) {
+    this.notifyListener(event);
 }
 
 /**
  * notify listener
  **/
-EventDispatcher.prototype.notifyListener = function(type) {
-    var list = this.eventMap[type];
+EventDispatcher.prototype.notifyListener = function(event) {
+    var list = this.eventMap[event.type];
 
     if(!list) {
         return;
@@ -56,6 +56,6 @@ EventDispatcher.prototype.notifyListener = function(type) {
 
     for(var i = 0, len = list.length; i < len; i++) {
         var bin = list[i];
-        bin.listener.call(bin.thisObject);
+        bin.listener.call(bin.thisObject, event);
     }
 }

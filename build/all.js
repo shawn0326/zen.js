@@ -367,56 +367,6 @@ var Util = {
 
 }
 
-/**
- * DrawData Class
- * describ a draw data
- **/
-var DrawData = function() {
-
-    this.cmd = null;
-
-    this.texture = null;
-
-    this.color = 0x000000;
-
-    this.transform = null;
-
-    this.count = 0;
-
-    this.blendMode = "";
-
-    this.filter = null;
-
-    this.mask = null;
-
-};
-
-// draw data object pool
-DrawData.pool = [];
-
-// create some draw data
-for(var i = 0; i < 300; i++) {
-    DrawData.pool.push(new DrawData());
-}
-
-DrawData.getObject = function() {
-    return DrawData.pool.length > 0 ? DrawData.pool.pop() : new DrawData();
-};
-
-DrawData.returnObject = function(drawData) {
-
-    drawData.cmd = null;
-    drawData.texture = null;
-    drawData.color = 0x000000;
-    drawData.transform = null;
-    drawData.count = 0;
-    drawData.blendMode = "";
-    drawData.filter = null;
-    drawData.mask = null;
-
-    DrawData.pool.push(drawData);
-
-};
 
 /**
  * If the image size is power of 2
@@ -540,6 +490,56 @@ RenderTexture.prototype.resize = function(width, height, bind) {
     this.isInit = true;
 }
 
+/**
+ * DrawData Class
+ * describ a draw data
+ **/
+var DrawData = function() {
+
+    this.cmd = null;
+
+    this.texture = null;
+
+    this.color = 0x000000;
+
+    this.transform = null;
+
+    this.count = 0;
+
+    this.blendMode = "";
+
+    this.filter = null;
+
+    this.mask = null;
+
+};
+
+// draw data object pool
+DrawData.pool = [];
+
+// create some draw data
+for(var i = 0; i < 300; i++) {
+    DrawData.pool.push(new DrawData());
+}
+
+DrawData.getObject = function() {
+    return DrawData.pool.length > 0 ? DrawData.pool.pop() : new DrawData();
+};
+
+DrawData.returnObject = function(drawData) {
+
+    drawData.cmd = null;
+    drawData.texture = null;
+    drawData.color = 0x000000;
+    drawData.transform = null;
+    drawData.count = 0;
+    drawData.blendMode = "";
+    drawData.filter = null;
+    drawData.mask = null;
+
+    DrawData.pool.push(drawData);
+
+};
 /**
  * Render Class
  **/
@@ -2229,15 +2229,15 @@ EventDispatcher.prototype.removeEventListener = function(type, listener, thisObj
 /**
  * dispatch a event
  **/
-EventDispatcher.prototype.dispatchEvent = function(type) {
-    this.notifyListener(type);
+EventDispatcher.prototype.dispatchEvent = function(event) {
+    this.notifyListener(event);
 }
 
 /**
  * notify listener
  **/
-EventDispatcher.prototype.notifyListener = function(type) {
-    var list = this.eventMap[type];
+EventDispatcher.prototype.notifyListener = function(event) {
+    var list = this.eventMap[event.type];
 
     if(!list) {
         return;
@@ -2245,9 +2245,67 @@ EventDispatcher.prototype.notifyListener = function(type) {
 
     for(var i = 0, len = list.length; i < len; i++) {
         var bin = list[i];
-        bin.listener.call(bin.thisObject);
+        bin.listener.call(bin.thisObject, event);
     }
 }
+
+/**
+ * Event Class
+ **/
+var Event = function() {
+    // event type
+    this.type = "";
+    // event target
+    this.target = null;
+}
+
+/**
+ * create and dispatch event
+ **/
+Event.dispatchEvent = function(target, type) {
+    var event = new Event();
+    event.type = type;
+    event.target = target;
+    target.dispatchEvent(event);
+}
+
+/**
+ * TouchEvent Class
+ **/
+var TouchEvent = function() {
+    TouchEvent.superClass.constructor.call(this);
+    // page position
+    this.pageX = 0;
+    this.pageY = 0;
+    // local position
+    this.localX = 0;
+    this.localY = 0;
+}
+
+// inherit
+Util.inherit(TouchEvent, Event);
+
+/**
+ * create and dispatch event
+ **/
+TouchEvent.dispatchEvent = function(target, type, pageX, pageY) {
+    var event = new TouchEvent();
+    event.type = type;
+    event.target = target;
+    event.pageX = pageX;
+    event.pageY = pageY;
+    var matrix = target.getInvertedConcatenatedMatrix();
+    var localX = matrix.a * pageX + matrix.c * pageY + matrix.tx;
+    var localY = matrix.b * pageX + matrix.d * pageY + matrix.ty;
+    event.localX = localX;
+    event.localY = localY;
+    target.dispatchEvent(event);
+}
+
+/**
+ * touch tap event
+ **/
+TouchEvent.TOUCH_TAP = "touch_tap";
 
 /**
  * DisplayObject Class
@@ -2379,13 +2437,13 @@ DisplayObject.prototype.hitTest = function(x, y) {
 }
 
 /**
- * dispatch a event
+ * dispatch a event (rewrite)
  **/
-DisplayObject.prototype.dispatchEvent = function(type) {
+DisplayObject.prototype.dispatchEvent = function(event) {
     var list = this.getPropagationList();
     for(var i = 0; i < list.length; i++) {
         var object = list[i];
-        object.notifyListener(type);
+        object.notifyListener(event);
     }
 }
 
