@@ -3,44 +3,67 @@ var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var rename = require('gulp-rename');
 var notify = require('gulp-notify');
+var watch = require('gulp-watch');
 
-gulp.task('default', function() {
-    gulp.src([
-        "src/Const.js",
-        "src/State.js",
-        "src/math/Matrix.js",
-        "src/math/Rectangle.js",
-        "src/Util.js",
-        "src/texture/Texture.js",
-        "src/texture/RenderTexture.js",
-        "src/render/DrawData.js",
-        "src/render/Render.js",
-        "src/render/RenderTarget.js",
-        "src/render/RenderBuffer.js",
-        "src/shader/Shader.js",
-        "src/shader/PrimitiveShader.js",
-        "src/shader/TextureShader.js",
-        "src/shader/ColorTransformShader.js",
-        "src/shader/GrayShader.js",
-        "src/shader/BlurXShader.js",
-        "src/shader/BlurYShader.js",
-        "src/filters/AbstractFilter.js",
-        "src/filters/ColorTransformFilter.js",
-        "src/filters/GrayFilter.js",
-        "src/filters/BlurXFilter.js",
-        "src/filters/BlurYFilter.js",
-        "src/event/EventDispatcher.js",
-        "src/event/Event.js",
-        "src/event/TouchEvent.js",
-        "src/display/DisplayObject.js",
-        "src/display/DisplayObjectContainer.js",
-        "src/display/Sprite.js",
-        "src/display/Rect.js"
-    ])
-    .pipe(concat('all.js'))
+// base dir of src
+var baseDir = "src/";
+
+// name of all in one file
+var outputName = "all";
+
+// src of files
+var filesSrc = [
+    "Const.js",
+    "State.js",
+    "math/Matrix.js",
+    "math/Rectangle.js",
+    "Util.js",
+    "texture/Texture.js",
+    "texture/RenderTexture.js",
+    "render/DrawData.js",
+    "render/Render.js",
+    "render/RenderTarget.js",
+    "render/RenderBuffer.js",
+    "shader/Shader.js",
+    "shader/PrimitiveShader.js",
+    "shader/TextureShader.js",
+    "shader/ColorTransformShader.js",
+    "shader/GrayShader.js",
+    "shader/BlurXShader.js",
+    "shader/BlurYShader.js",
+    "filters/AbstractFilter.js",
+    "filters/ColorTransformFilter.js",
+    "filters/GrayFilter.js",
+    "filters/BlurXFilter.js",
+    "filters/BlurYFilter.js",
+    "event/EventDispatcher.js",
+    "event/Event.js",
+    "event/TouchEvent.js",
+    "display/DisplayObject.js",
+    "display/DisplayObjectContainer.js",
+    "display/Sprite.js",
+    "display/Rect.js"
+];
+
+for(var i = 0, l = filesSrc.length; i < l; i++) {
+    filesSrc[i] = baseDir + filesSrc[i];
+}
+
+gulp.task('default', ['build'], function() {
+    // do nothing
+});
+
+gulp.task("build", function() {
+    gulp.src(filesSrc)
+    .pipe(concat(outputName + '.js'))
     .pipe(gulp.dest('build'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(uglify())
     .pipe(gulp.dest('build'))
-    .pipe(notify({ message: 'js task ok' }));;
+    .pipe(notify({ message: 'build success' }));
 });
+
+gulp.task("watch", ['build'], function() {
+    gulp.watch(filesSrc, ['build']);
+});
+
