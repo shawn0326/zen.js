@@ -18,6 +18,7 @@ var filesSrc = [
     "math/Matrix.js",
     "math/Rectangle.js",
     "Util.js",
+    "TouchHandler.js",
     "texture/Texture.js",
     "texture/RenderTexture.js",
     "render/DrawData.js",

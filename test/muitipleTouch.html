@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>event</title>
+    <title>muitiple-touch</title>
     <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
     	#canvas{
@@ -23,11 +23,13 @@
     // create a render
     var render = new Render(document.getElementById("canvas"));
 
-    var texture = Texture.fromSrc(render.context, "resources/bunny.png");
-
     var container = new DisplayObjectContainer();
-    container.x = 100;
-    container.y = 100;
+
+    // touch handler
+    var touchHandler = new TouchHandler(render.view, container);
+    touchHandler.addListeners();
+
+    var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 
     var sprite = new Sprite();
     sprite.texture = texture;
@@ -37,14 +39,12 @@
     sprite.anchorY = 0.5;
     sprite.width = 100;
     sprite.height = 100;
-    sprite.scaleX = 2;
-    sprite.rotation = 1;
     container.addChild(sprite);
 
     var sprite2 = new Sprite();
     sprite2.texture = texture;
-    sprite2.x = 400;
-    sprite2.y = 400;
+    sprite2.x = 200;
+    sprite2.y = 300;
     sprite2.anchorX = 0.5;
     sprite2.anchorY = 0.5;
     sprite2.width = 100;
@@ -52,19 +52,37 @@
     container.addChild(sprite2);
 
     var listener = function(e) {
-        console.log("click");
-        console.log(e);
+        console.log("sprite1" + e.type, e.localX, e.localY);
+        sprite.x = e.pageX;
+        sprite.y = e.pageY;
     }
     var listener2 = function(e) {
-        console.log("click2");
-        console.log(e);
+        console.log("sprite2" + e.type);
+        sprite2.x = e.pageX;
+        sprite2.y = e.pageY;
     }
     var listener3 = function(e) {
-        console.log("container click");
-        console.log(e);
+        console.log("container" + e.type);
     }
-    sprite.addEventListener(TouchEvent.TOUCH_TAP, listener, this);
-    sprite2.addEventListener(TouchEvent.TOUCH_TAP, listener2, this);
+    var biggerSize = function(e) {
+        console.log("container" + e.type);
+        sprite.scaleX = 1.2;
+        sprite.scaleY = 1.2;
+    }
+    var restoreSize = function(e) {
+        console.log("container" + e.type);
+        sprite.scaleX = 1;
+        sprite.scaleY = 1;
+    }
+    sprite.addEventListener(TouchEvent.TOUCH_BEGIN, biggerSize, this);
+    sprite.addEventListener(TouchEvent.TOUCH_MOVE, listener, this);
+    sprite.addEventListener(TouchEvent.TOUCH_END, restoreSize, this);
+    // sprite.addEventListener(TouchEvent.TOUCH_RELEASE_OUTSIDE, listener, this);
+
+    // sprite.addEventListener(TouchEvent.TOUCH_TAP, listener, this);
+
+    sprite2.addEventListener(TouchEvent.TOUCH_MOVE, listener2, this);
+
     container.addEventListener(TouchEvent.TOUCH_TAP, listener3, this);
 
     // fps
@@ -83,18 +101,6 @@
     }
 
     loop();
-
-    function addTouchEvent(render, displayObject) {
-        render.view.addEventListener("click", function(e) {
-            var target = displayObject.hitTest(e.pageX, render.height - e.pageY);
-
-            if(target) {
-                TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_TAP, e.pageX, render.height - e.pageY);
-            }
-        }.bind(this));
-    }
-
-    addTouchEvent(render, container);
 
 </script>
 </html>

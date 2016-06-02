@@ -35,3 +35,23 @@ TouchEvent.dispatchEvent = function(target, type, pageX, pageY) {
  * touch tap event
  **/
 TouchEvent.TOUCH_TAP = "touch_tap";
+
+/**
+ * touch begin event
+ **/
+TouchEvent.TOUCH_BEGIN = "touch_begin";
+
+/**
+ * touch move event
+ **/
+TouchEvent.TOUCH_MOVE = "touch_move";
+
+/**
+ * touch end event
+ **/
+TouchEvent.TOUCH_END = "touch_end";
+
+/**
+ * touch release outside event
+ **/
+TouchEvent.TOUCH_RELEASE_OUTSIDE = "touch_release_outside";
