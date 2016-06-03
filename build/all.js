@@ -50,38 +50,32 @@ var BLEND_MODE = {
 
     SCREEN: ["ONE", "ONE_MINUS_SRC_COLOR"]
 }
-/**
- * State Class
- * show state
- **/
-var State = function() {
-    this.startTime = Date.now();
-    this.frameCount = 0;
+var Util = {
 
-    this.dom = document.createElement("div");
-    this.dom.style.cssText = "background:rgba(0, 0, 0, 0.8);position:absolute;top:0;left:0;padding:10px;min-width:180px;height:80px;fontSize:26px;color:green";
-}
+    /**
+     * Class inherit
+     */
 
-State.prototype.update = function(draw) {
-    var endTime = Date.now();
-    if(endTime - this.startTime < 1000) {
-        this.frameCount ++;
-    } else {
-        var fps = Math.min(this.frameCount + 1, 60);
-        this.show(fps, draw || "[not input!]");
+    emptyConstructor: function() {},
 
-        this.startTime = endTime;
-        this.frameCount = 0;
+    inherit: function(subClass, superClass) {
+        Util.emptyConstructor.prototype = superClass.prototype;
+        subClass.superClass = superClass.prototype;
+        subClass.prototype = new Util.emptyConstructor;
+        subClass.prototype.constructor = subClass;
+    },
+
+    /**
+     * is mobile
+     */
+    isMobile: function() {
+        if (!window["navigator"]) {
+            return true;
+        }
+        var ua = navigator.userAgent.toLowerCase();
+        return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
     }
-}
 
-State.prototype.show = function(fps, draw) {
-    this.dom.innerHTML = "FPS :" + fps + "</br>"
-                     + "DRAW:" + draw;
-}
-
-State.prototype.getDom = function() {
-    return this.dom;
 }
 
 
@@ -349,227 +343,6 @@ Rectangle.prototype.copy = function(rectangle) {
 Rectangle.prototype.contains = function(x, y) {
     return (x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height);
 }
-
-var Util = {
-
-    /**
-     * Class inherit
-     */
-
-    emptyConstructor: function() {},
-
-    inherit: function(subClass, superClass) {
-        Util.emptyConstructor.prototype = superClass.prototype;
-        subClass.superClass = superClass.prototype;
-        subClass.prototype = new Util.emptyConstructor;
-        subClass.prototype.constructor = subClass;
-    },
-
-    /**
-     * is mobile
-     */
-    isMobile: function() {
-        if (!window["navigator"]) {
-            return true;
-        }
-        var ua = navigator.userAgent.toLowerCase();
-        return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
-    }
-
-}
-
-/**
- * TouchHandler Class
- * handle touch event
- **/
-var TouchHandler = function(canvas, rootTarget) {
-
-    this.canvas = canvas;
-
-    this.rootTarget = rootTarget;
-
-    this.touchDownTarget = {};
-
-    this.useTouchesCount = 0;
-
-    this.maxTouches = 6;
-}
-
-/**
- * add listeners
- * need call by user
- **/
-TouchHandler.prototype.addListeners = function () {
-    if (window.navigator.msPointerEnabled) {
-        this.addMSPointerListener();
-    } else {
-        if(Util.isMobile()) {
-            this.addTouchListener();
-        } else {
-            this.addMouseListener();
-        }
-    }
-}
-
-/**
- * add MSPointer listeners
- * for microsoft
- **/
-TouchHandler.prototype.addMSPointerListener = function () {
-    var _this = this;
-    this.canvas.addEventListener("MSPointerDown", function (event) {
-        event.identifier = event.pointerId;
-        _this.onTouchBegin(event);
-        _this.prevent(event);
-    }, false);
-    this.canvas.addEventListener("MSPointerMove", function (event) {
-        event.identifier = event.pointerId;
-        _this.onTouchMove(event);
-        _this.prevent(event);
-    }, false);
-    this.canvas.addEventListener("MSPointerUp", function (event) {
-        event.identifier = event.pointerId;
-        _this.onTouchEnd(event);
-        _this.prevent(event);
-    }, false);
-}
-
-/**
- * add Mouse listeners
- * for desktop
- **/
-TouchHandler.prototype.addMouseListener = function () {
-    this.canvas.addEventListener("mousedown", this.onTouchBegin.bind(this));
-    this.canvas.addEventListener("mousemove", this.onTouchMove.bind(this));
-    this.canvas.addEventListener("mouseup", this.onTouchEnd.bind(this));
-}
-
-/**
- * add touch listeners
- * for mobile device
- **/
-TouchHandler.prototype.addTouchListener = function () {
-    var _this = this;
-    this.canvas.addEventListener("touchstart", function (event) {
-        var l = event.changedTouches.length;
-        for (var i = 0; i < l; i++) {
-            _this.onTouchBegin(event.changedTouches[i]);
-        }
-        _this.prevent(event);
-    }, false);
-    this.canvas.addEventListener("touchmove", function (event) {
-        var l = event.changedTouches.length;
-        for (var i = 0; i < l; i++) {
-            _this.onTouchMove(event.changedTouches[i]);
-        }
-        _this.prevent(event);
-    }, false);
-    this.canvas.addEventListener("touchend", function (event) {
-        var l = event.changedTouches.length;
-        for (var i = 0; i < l; i++) {
-            _this.onTouchEnd(event.changedTouches[i]);
-        }
-        _this.prevent(event);
-    }, false);
-    this.canvas.addEventListener("touchcancel", function (event) {
-        var l = event.changedTouches.length;
-        for (var i = 0; i < l; i++) {
-            _this.onTouchEnd(event.changedTouches[i]);
-        }
-        _this.prevent(event);
-    }, false);
-}
-
-/**
- * prevent default event
- **/
-TouchHandler.prototype.prevent = function (event) {
-    event.stopPropagation();
-    if (event["isScroll"] != true && !this.canvas['userTyping']) {
-        event.preventDefault();
-    }
-};
-
-/**
- * touch begin
- **/
-TouchHandler.prototype.onTouchBegin = function(event) {
-    if (this.useTouchesCount >= this.maxTouches) {
-        return;
-    }
-
-    var identifyer = +event.identifyer || 0;
-
-    var x = event.pageX;
-    var y = this.canvas.height - event.pageY;
-
-    var target = this.rootTarget.hitTest(x, y);
-
-    if(!target) {
-        return;
-    }
-
-    if(this.touchDownTarget[identifyer] == null) {
-        this.touchDownTarget[identifyer] = target;
-        this.useTouchesCount++;
-    }
-
-    TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_BEGIN, x, y);
-}
-
-/**
- * touch move
- **/
-TouchHandler.prototype.onTouchMove = function(event) {
-    // console.log("touch move")
-    var identifyer = +event.identifyer || 0;
-
-    if (this.touchDownTarget[identifyer] == null) {
-        return;
-    }
-
-    var x = event.pageX;
-    var y = this.canvas.height - event.pageY;
-
-    var target = this.rootTarget.hitTest(x, y);
-
-    if(!target) {
-        return;
-    }
-
-    TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_MOVE, x, y);
-}
-
-/**
- * touch end
- **/
-TouchHandler.prototype.onTouchEnd = function(event) {
-    // console.log("touch end")
-    var identifyer = +event.identifyer || 0;
-
-    if (this.touchDownTarget[identifyer] == null) {
-        return;
-    }
-
-    var x = event.pageX;
-    var y = this.canvas.height - event.pageY;
-
-    var target = this.rootTarget.hitTest(x, y);
-    var oldTarget = this.touchDownTarget[identifyer];
-    delete this.touchDownTarget[identifyer];
-    this.useTouchesCount--;
-
-    if(target) {
-        TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_END, x, y);
-    }
-
-    if(target == oldTarget) {
-        TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_TAP, x, y);
-    } else {
-        TouchEvent.dispatchEvent(oldTarget, TouchEvent.TOUCH_RELEASE_OUTSIDE, x, y);
-    }
-}
-
 
 
 /**
@@ -2965,3 +2738,230 @@ Rect.prototype.getDrawData = function() {
 //
 //     render.primitiveShader.fillColor(gl, data.color);
 // };
+
+/**
+ * State Class
+ * show state
+ **/
+var State = function() {
+    this.startTime = Date.now();
+    this.frameCount = 0;
+
+    this.dom = document.createElement("div");
+    this.dom.style.cssText = "background:rgba(0, 0, 0, 0.8);position:absolute;top:0;left:0;padding:10px;min-width:180px;height:80px;fontSize:26px;color:green";
+}
+
+State.prototype.update = function(draw) {
+    var endTime = Date.now();
+    if(endTime - this.startTime < 1000) {
+        this.frameCount ++;
+    } else {
+        var fps = Math.min(this.frameCount + 1, 60);
+        this.show(fps, draw || "[not input!]");
+
+        this.startTime = endTime;
+        this.frameCount = 0;
+    }
+}
+
+State.prototype.show = function(fps, draw) {
+    this.dom.innerHTML = "FPS :" + fps + "</br>"
+                     + "DRAW:" + draw;
+}
+
+State.prototype.getDom = function() {
+    return this.dom;
+}
+
+/**
+ * TouchHandler Class
+ * handle touch event
+ **/
+var TouchHandler = function(canvas, rootTarget) {
+
+    this.canvas = canvas;
+
+    this.rootTarget = rootTarget;
+
+    this.touchDownTarget = {};
+
+    this.useTouchesCount = 0;
+
+    this.maxTouches = 6;
+}
+
+/**
+ * add listeners
+ * need call by user
+ **/
+TouchHandler.prototype.addListeners = function () {
+    if (window.navigator.msPointerEnabled) {
+        this.addMSPointerListener();
+    } else {
+        if(Util.isMobile()) {
+            this.addTouchListener();
+        } else {
+            this.addMouseListener();
+        }
+    }
+}
+
+/**
+ * add MSPointer listeners
+ * for microsoft
+ **/
+TouchHandler.prototype.addMSPointerListener = function () {
+    var _this = this;
+    this.canvas.addEventListener("MSPointerDown", function (event) {
+        event.identifier = event.pointerId;
+        _this.onTouchBegin(event);
+        _this.prevent(event);
+    }, false);
+    this.canvas.addEventListener("MSPointerMove", function (event) {
+        event.identifier = event.pointerId;
+        _this.onTouchMove(event);
+        _this.prevent(event);
+    }, false);
+    this.canvas.addEventListener("MSPointerUp", function (event) {
+        event.identifier = event.pointerId;
+        _this.onTouchEnd(event);
+        _this.prevent(event);
+    }, false);
+}
+
+/**
+ * add Mouse listeners
+ * for desktop
+ **/
+TouchHandler.prototype.addMouseListener = function () {
+    this.canvas.addEventListener("mousedown", this.onTouchBegin.bind(this));
+    this.canvas.addEventListener("mousemove", this.onTouchMove.bind(this));
+    this.canvas.addEventListener("mouseup", this.onTouchEnd.bind(this));
+}
+
+/**
+ * add touch listeners
+ * for mobile device
+ **/
+TouchHandler.prototype.addTouchListener = function () {
+    var _this = this;
+    this.canvas.addEventListener("touchstart", function (event) {
+        var l = event.changedTouches.length;
+        for (var i = 0; i < l; i++) {
+            _this.onTouchBegin(event.changedTouches[i]);
+        }
+        _this.prevent(event);
+    }, false);
+    this.canvas.addEventListener("touchmove", function (event) {
+        var l = event.changedTouches.length;
+        for (var i = 0; i < l; i++) {
+            _this.onTouchMove(event.changedTouches[i]);
+        }
+        _this.prevent(event);
+    }, false);
+    this.canvas.addEventListener("touchend", function (event) {
+        var l = event.changedTouches.length;
+        for (var i = 0; i < l; i++) {
+            _this.onTouchEnd(event.changedTouches[i]);
+        }
+        _this.prevent(event);
+    }, false);
+    this.canvas.addEventListener("touchcancel", function (event) {
+        var l = event.changedTouches.length;
+        for (var i = 0; i < l; i++) {
+            _this.onTouchEnd(event.changedTouches[i]);
+        }
+        _this.prevent(event);
+    }, false);
+}
+
+/**
+ * prevent default event
+ **/
+TouchHandler.prototype.prevent = function (event) {
+    event.stopPropagation();
+    if (event["isScroll"] != true && !this.canvas['userTyping']) {
+        event.preventDefault();
+    }
+};
+
+/**
+ * touch begin
+ **/
+TouchHandler.prototype.onTouchBegin = function(event) {
+    if (this.useTouchesCount >= this.maxTouches) {
+        return;
+    }
+
+    var identifyer = +event.identifyer || 0;
+
+    var x = event.pageX;
+    var y = this.canvas.height - event.pageY;
+
+    var target = this.rootTarget.hitTest(x, y);
+
+    if(!target) {
+        return;
+    }
+
+    if(this.touchDownTarget[identifyer] == null) {
+        this.touchDownTarget[identifyer] = target;
+        this.useTouchesCount++;
+    }
+
+    TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_BEGIN, x, y);
+}
+
+/**
+ * touch move
+ **/
+TouchHandler.prototype.onTouchMove = function(event) {
+    // console.log("touch move")
+    var identifyer = +event.identifyer || 0;
+
+    if (this.touchDownTarget[identifyer] == null) {
+        return;
+    }
+
+    var x = event.pageX;
+    var y = this.canvas.height - event.pageY;
+
+    var target = this.rootTarget.hitTest(x, y);
+
+    if(!target) {
+        return;
+    }
+
+    TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_MOVE, x, y);
+}
+
+/**
+ * touch end
+ **/
+TouchHandler.prototype.onTouchEnd = function(event) {
+    // console.log("touch end")
+    var identifyer = +event.identifyer || 0;
+
+    if (this.touchDownTarget[identifyer] == null) {
+        return;
+    }
+
+    var x = event.pageX;
+    var y = this.canvas.height - event.pageY;
+
+    var target = this.rootTarget.hitTest(x, y);
+    var oldTarget = this.touchDownTarget[identifyer];
+    delete this.touchDownTarget[identifyer];
+    this.useTouchesCount--;
+
+    if(target) {
+        TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_END, x, y);
+    }
+
+    if(target == oldTarget) {
+        TouchEvent.dispatchEvent(target, TouchEvent.TOUCH_TAP, x, y);
+    } else {
+        TouchEvent.dispatchEvent(oldTarget, TouchEvent.TOUCH_RELEASE_OUTSIDE, x, y);
+    }
+}
+
