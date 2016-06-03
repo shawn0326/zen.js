@@ -18,6 +18,7 @@ var filesSrc = [
     "core/Util.js",
     "core/math/Matrix.js",
     "core/math/Rectangle.js",
+    "core/math/Vec2.js",
     "core/texture/Texture.js",
     "core/texture/RenderTexture.js",
     "core/render/DrawData.js",

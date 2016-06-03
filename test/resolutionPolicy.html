@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>muitiple-touch</title>
+    <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+    	#canvas{
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: black;
+    	}
+    </style>
+    <script src="../build/all.js"></script>
+</head>
+<body>
+	<canvas id="canvas" width="480" height="800"></canvas>
+</body>
+<script>
+
+    // create a render
+    var render = new Render(document.getElementById("canvas"));
+
+    var container = new DisplayObjectContainer();
+
+    // touch handler
+    var touchHandler = new TouchHandler(render.view, container);
+    touchHandler.addListeners();
+
+    var canvas = document.getElementById("canvas");
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
+
+    var stageWidth = canvas.width;
+    var stageHeight = canvas.height;
+
+    var displayLeft = 0;
+    var displayTop = 0;
+    var displayWidth = screenWidth;
+    var displayHeight = screenHeight;
+
+    var scaleX = displayWidth / stageWidth;
+    var scaleY = displayHeight / stageHeight;
+
+    // if(true) {// EXACT_FIT
+    //
+    // }
+    // if(true) {// SHOW_ALL
+    //     if(scaleX > scaleY) {
+    //         displayWidth = Math.round(stageWidth * scaleY);
+    //         displayLeft = Math.round((screenWidth - displayWidth) / 2);
+    //     } else {
+    //         displayHeight = Math.round(stageHeight * scaleX);
+    //         displayTop = Math.round((screenHeight - displayHeight) / 2);
+    //     }
+    // }
+    // if(true) {// NO_BORDER
+    //     if (scaleX > scaleY) {
+    //         displayHeight = Math.round(stageHeight * scaleX);
+    //         // fixed left bottom
+    //         displayTop = Math.round(screenHeight - displayHeight);
+    //     }
+    //     else {
+    //         displayWidth = Math.round(stageWidth * scaleY);
+    //     }
+    // }
+    // if(true) {// FIXED_WIDTH
+    //     stageHeight = Math.round(screenHeight / scaleX);
+    // }
+    if(true) {// FIXED_HEIGHT
+        stageWidth = Math.round(screenWidth / scaleY);
+    }
+
+
+    canvas.width = stageWidth;
+    canvas.height = stageHeight;
+
+    canvas.style.left = displayLeft + "px";
+    canvas.style.top = displayTop + "px";
+    canvas.style.width = displayWidth + "px";
+    canvas.style.height = displayHeight + "px";
+
+    touchHandler.updateScale(displayWidth / stageWidth, displayHeight / stageHeight);
+
+    var texture = Texture.fromSrc(render.context, "resources/bunny.png");
+
+    var sprite = new Sprite();
+    sprite.texture = texture;
+    sprite.x = 100;
+    sprite.y = 300;
+    sprite.anchorX = 0.5;
+    sprite.anchorY = 0.5;
+    sprite.width = 100;
+    sprite.height = 100;
+    container.addChild(sprite);
+
+    var sprite2 = new Sprite();
+    sprite2.texture = texture;
+    sprite2.x = 200;
+    sprite2.y = 300;
+    sprite2.anchorX = 0.5;
+    sprite2.anchorY = 0.5;
+    sprite2.width = 100;
+    sprite2.height = 100;
+    container.addChild(sprite2);
+
+    var listener = function(e) {
+        console.log("sprite1" + e.type, e.localX, e.localY);
+        sprite.x = e.pageX;
+        sprite.y = e.pageY;
+    }
+    var listener2 = function(e) {
+        console.log("sprite2" + e.type);
+        sprite2.x = e.pageX;
+        sprite2.y = e.pageY;
+    }
+    var listener3 = function(e) {
+        console.log("container" + e.type);
+    }
+    var biggerSize = function(e) {
+        console.log("container" + e.type);
+        sprite.scaleX = 1.2;
+        sprite.scaleY = 1.2;
+    }
+    var restoreSize = function(e) {
+        console.log("container" + e.type);
+        sprite.scaleX = 1;
+        sprite.scaleY = 1;
+    }
+    sprite.addEventListener(TouchEvent.TOUCH_BEGIN, biggerSize, this);
+    sprite.addEventListener(TouchEvent.TOUCH_MOVE, listener, this);
+    sprite.addEventListener(TouchEvent.TOUCH_END, restoreSize, this);
+    // sprite.addEventListener(TouchEvent.TOUCH_RELEASE_OUTSIDE, listener, this);
+
+    // sprite.addEventListener(TouchEvent.TOUCH_TAP, listener, this);
+
+    sprite2.addEventListener(TouchEvent.TOUCH_MOVE, listener2, this);
+
+    container.addEventListener(TouchEvent.TOUCH_TAP, listener3, this);
+
+    // fps
+    var state = new State();
+    document.body.appendChild(state.getDom());
+
+    // frame render
+    function loop() {
+
+        requestAnimationFrame(loop);
+        // render.clear();
+
+        var drawCall = render.render(container);
+
+        state.update(drawCall);
+    }
+
+    loop();
+
+</script>
+</html>

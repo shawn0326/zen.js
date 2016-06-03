@@ -344,6 +344,59 @@ Rectangle.prototype.contains = function(x, y) {
     return (x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height);
 }
 
+/**
+ * Vec2 Class
+ */
+var Vec2 = function(x, y) {
+    this.set(x, y);
+}
+
+/**
+ * set values of this vec2
+ */
+Vec2.prototype.set = function(x, y) {
+    this.x = x || 0;
+    this.y = y || 0;
+}
+
+/**
+ * identify matrix
+ **/
+Vec2.prototype.identify = function() {
+    this.set(0, 0);
+}
+
+/**
+ * copy values from other vec2
+ */
+Vec2.prototype.copy = function(vec2) {
+    this.x = vec2.x;
+    this.y = vec2.y;
+}
+
+/**
+ * transform
+ */
+Vec2.prototype.transform = function(matrix) {
+    var x = this.x;
+    var y = this.y;
+    this.x = matrix.a * x + matrix.c * y + matrix.tx;
+    this.y = matrix.b * x + matrix.d * y + matrix.ty;
+}
+
+Vec2._pool = [];
+
+Vec2.create = function() {
+    return Vec2._pool.pop() || new Vec2();
+}
+
+Vec2.release = function(vec2) {
+    vec2.identify();
+    vec2._pool.push(matrix);
+}
+
+// a temp vec2 used in this framework
+Vec2.tempVec2 = new Vec2();
 
 /**
  * If the image size is power of 2
@@ -2788,6 +2841,10 @@ var TouchHandler = function(canvas, rootTarget) {
     this.useTouchesCount = 0;
 
     this.maxTouches = 6;
+
+    // scale rate will change touch position mapping
+    this.scaleX = 1;
+    this.scaleY = 1;
 }
 
 /**
@@ -2895,8 +2952,9 @@ TouchHandler.prototype.onTouchBegin = function(event) {
 
     var identifyer = +event.identifyer || 0;
 
-    var x = event.pageX;
-    var y = this.canvas.height - event.pageY;
+    var touchPoint =this.getLocation(event, Vec2.tempVec2);
+    var x = Vec2.tempVec2.x;
+    var y = Vec2.tempVec2.y;
 
     var target = this.rootTarget.hitTest(x, y);
 
@@ -2923,8 +2981,9 @@ TouchHandler.prototype.onTouchMove = function(event) {
         return;
     }
 
-    var x = event.pageX;
-    var y = this.canvas.height - event.pageY;
+    var touchPoint =this.getLocation(event, Vec2.tempVec2);
+    var x = Vec2.tempVec2.x;
+    var y = Vec2.tempVec2.y;
 
     var target = this.rootTarget.hitTest(x, y);
 
@@ -2946,8 +3005,9 @@ TouchHandler.prototype.onTouchEnd = function(event) {
         return;
     }
 
-    var x = event.pageX;
-    var y = this.canvas.height - event.pageY;
+    var touchPoint =this.getLocation(event, Vec2.tempVec2);
+    var x = Vec2.tempVec2.x;
+    var y = Vec2.tempVec2.y;
 
     var target = this.rootTarget.hitTest(x, y);
     var oldTarget = this.touchDownTarget[identifyer];
@@ -2963,5 +3023,23 @@ TouchHandler.prototype.onTouchEnd = function(event) {
     } else {
         TouchEvent.dispatchEvent(oldTarget, TouchEvent.TOUCH_RELEASE_OUTSIDE, x, y);
     }
+}
+
+/**
+ * update scale
+ **/
+TouchHandler.prototype.updateScale = function(scaleX, scaleY) {
+    this.scaleX = scaleX;
+    this.scaleY = scaleY;
+}
+
+/**
+ * touch end
+ **/
+TouchHandler.prototype.getLocation = function(event, point) {
+    var box = this.canvas.getBoundingClientRect();
+    point.x = (event.pageX - box.left) / this.scaleX;
+    point.y = (box.height - (event.pageY - box.top)) / this.scaleY;
+    return point;
 }
 
