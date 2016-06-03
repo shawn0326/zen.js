@@ -2966,7 +2966,7 @@ TouchHandler.prototype.onTouchBegin = function(event) {
         return;
     }
 
-    var identifyer = +event.identifyer || 0;
+    var identifier = +event.identifier || 0;
 
     var touchPoint =this.getLocation(event, Vec2.tempVec2);
     var x = Vec2.tempVec2.x;
@@ -2978,8 +2978,8 @@ TouchHandler.prototype.onTouchBegin = function(event) {
         return;
     }
 
-    if(this.touchDownTarget[identifyer] == null) {
-        this.touchDownTarget[identifyer] = target;
+    if(this.touchDownTarget[identifier] == null) {
+        this.touchDownTarget[identifier] = target;
         this.useTouchesCount++;
     }
 
@@ -2991,9 +2991,9 @@ TouchHandler.prototype.onTouchBegin = function(event) {
  **/
 TouchHandler.prototype.onTouchMove = function(event) {
     // console.log("touch move")
-    var identifyer = +event.identifyer || 0;
+    var identifier = +event.identifier || 0;
 
-    if (this.touchDownTarget[identifyer] == null) {
+    if (this.touchDownTarget[identifier] == null) {
         return;
     }
 
@@ -3015,9 +3015,9 @@ TouchHandler.prototype.onTouchMove = function(event) {
  **/
 TouchHandler.prototype.onTouchEnd = function(event) {
     // console.log("touch end")
-    var identifyer = +event.identifyer || 0;
+    var identifier = +event.identifier || 0;
 
-    if (this.touchDownTarget[identifyer] == null) {
+    if (this.touchDownTarget[identifier] == null) {
         return;
     }
 
@@ -3026,8 +3026,8 @@ TouchHandler.prototype.onTouchEnd = function(event) {
     var y = Vec2.tempVec2.y;
 
     var target = this.rootTarget.hitTest(x, y);
-    var oldTarget = this.touchDownTarget[identifyer];
-    delete this.touchDownTarget[identifyer];
+    var oldTarget = this.touchDownTarget[identifier];
+    delete this.touchDownTarget[identifier];
     this.useTouchesCount--;
 
     if(target) {
