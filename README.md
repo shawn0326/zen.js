@@ -14,7 +14,8 @@ WebGL是从OpenGL ES 2.0标准发展而来的（OpenGL ES是OpenGL标准的子�
 
 路线图
 --
-* touch事件
+* 屏幕适配策略
+* touch事件(已完成)
 * 滤镜叠加功能(已完成)
 * 遮罩功能（已完成）
 
