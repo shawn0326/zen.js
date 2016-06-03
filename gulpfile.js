@@ -47,7 +47,8 @@ var filesSrc = [
     // extension
     // TODO these js should concat to a independent file
     "extension/State.js",
-    "extension/TouchHandler.js"
+    "extension/TouchHandler.js",
+    "extension/ScreenAdapter.js",
 ];
 
 for(var i = 0, l = filesSrc.length; i < l; i++) {

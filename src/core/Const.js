@@ -50,3 +50,19 @@ var BLEND_MODE = {
 
     SCREEN: ["ONE", "ONE_MINUS_SRC_COLOR"]
 }
+
+/*
+ * resolution policy
+ */
+var RESOLUTION_POLICY = {
+
+    EXACT_FIT: 0,
+
+    SHOW_ALL: 1,
+
+    NO_BORDER: 2,
+
+    FIXED_WIDTH: 3,
+
+    FIXED_HEIGHT: 4
+}
