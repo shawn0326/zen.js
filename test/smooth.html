@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>render target</title>
+    <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+    	#canvas{
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: white;
+    	}
+    </style>
+    <script src="../build/all.js"></script>
+</head>
+<body>
+	<canvas id="canvas" width="480" height="800"></canvas>
+</body>
+<script>
+
+    // create a render
+    var render = new Render(document.getElementById("canvas"));
+
+    // var texture = Texture.fromSrc(render.context, "resources/bunny.png");
+
+    // create some sprites
+
+    var sprite = new Sprite();
+    // sprite.texture = texture;
+    // sprite.color = 0x475846;
+    sprite.x = 0;
+    sprite.y = 0;
+    sprite.width = 2;
+    sprite.height = 122;
+    // sprite.anchorX = 0.5;
+    // sprite.anchorY = 0.5;
+    // sprites.push(sprite);
+
+    // fps
+    var state = new State();
+    document.body.appendChild(state.getDom());
+
+    var _sprite = new Sprite();
+    _sprite.width = 2;
+    _sprite.height = 122;
+    _sprite.x = 100;
+    _sprite.y = 100;
+    _sprite.anchorX = 0.5;
+
+
+    //
+    var image = new Image();
+    image.src = "resources/1.png";
+    image.onload = function() {
+        var texture = Texture.fromImage(render.context, image);
+
+        sprite.texture = texture;
+
+        var renderTarget = new RenderTarget(render.context, 2, 122);
+
+        render.activateRenderTarget(renderTarget);
+
+        render.render(sprite);
+
+        //
+        render.activateRenderTarget(render.rootRenderTarget);
+        _sprite.texture = renderTarget.texture;
+        // render.render(_sprite);
+
+        // start!!!
+        loop();
+    }
+
+    // frame render
+    function loop() {
+
+        requestAnimationFrame(loop);
+
+        _sprite.rotation += 0.01;
+
+        var drawCall = render.render(_sprite);
+
+        // RenderTarget.release(renderTarget);
+
+        state.update(drawCall);
+    }
+
+</script>
+</html>
