@@ -98,6 +98,16 @@ RenderBuffer.prototype.cache = function(displayObject) {
 
             break;
 
+        case DISPLAY_TYPE.TEXT:
+            data = displayObject.getDrawData();
+
+            data.cmd = RENDER_CMD.TEXTURE;
+            this.drawData.push(data);
+
+            this.drawData[this.drawData.length - 1].count++;
+
+            break;
+
         default:
             console.warn("no render type function");
             break;

@@ -44,6 +44,7 @@ var filesSrc = [
     "core/display/DisplayObjectContainer.js",
     "core/display/Sprite.js",
     "core/display/Rect.js",
+    "core/display/Text.js",
     // extension
     // TODO these js should concat to a independent file
     "extension/State.js",
