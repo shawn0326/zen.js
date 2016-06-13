@@ -37,3 +37,7 @@ Current Version: NULL
 项目地址：
 --
 * https://coding.net/u/shawn0326/p/webgl-examples/git
+
+测试地址：
+--
+* http://shawn0326.coding.me/webgl-examples/test
