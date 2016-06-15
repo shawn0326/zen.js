@@ -7,7 +7,7 @@ Current Version: NULL
 简介
 --
         一个轻量WebGL渲染器，并且不提供canvas回滚功能！
-        渲染部分目前已经包含了RenderTexture，滤镜，混色等高级功能，text与graphics绘制正在开发中。
+        渲染部分目前已经包含了RenderTexture，滤镜，混色，遮罩，简单text绘制等高级功能，graphics绘制正在开发中。
         插件部分已包含了屏幕适配器与touch事件触发器。
 
 前言
@@ -22,7 +22,7 @@ Current Version: NULL
 
 路线图
 --
-* text绘制
+* ~~text绘制(已完成)~~
 * graphics绘制
 * ~~屏幕适配策略(已完成)~~
 * ~~touch事件(已完成)~~
@@ -32,7 +32,7 @@ Current Version: NULL
 联系我
 --
 * 邮箱：shawn0326@163.com
-* 微博：@谢帅shawn
+* 微博：[@谢帅shawn](http://weibo.com/shawn0326)
 
 项目地址：
 --
