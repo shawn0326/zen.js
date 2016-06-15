@@ -28,7 +28,9 @@ var DISPLAY_TYPE = {
 
     RECT: 1,
 
-    SPRITE: 2
+    SPRITE: 2,
+
+    TEXT: 3
 }
 
 /*
