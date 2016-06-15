@@ -9,7 +9,7 @@ var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 var sprites = [];
 var container = new DisplayObjectContainer();
 
-var num = 2000;
+var num = 1999;
 for(var i = 0; i < num; i++) {
     var sprite = new Sprite();
     sprite.texture = texture;
@@ -35,6 +35,10 @@ function loop() {
 
     requestAnimationFrame(loop);
     // render.clear();
+
+    for(var i = 0; i < num; i++) {
+        sprites[i].rotation += 0.1;
+    }
 
     var drawCall = render.render(container);
 
