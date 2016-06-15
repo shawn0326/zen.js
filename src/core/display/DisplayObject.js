@@ -40,6 +40,15 @@ var DisplayObject = function() {
 
     this.invertConcatenatedMatrix = new Matrix();
 
+    // vertex array, example: [0, 1, 2, 2, 3, 0 ...]
+    this.indices = [];
+
+    // coords array, example: [x, y, x, y, x...]
+    this.coords = [];
+
+    // props array, example: [u, v, alpha, u, v, alpha...]
+    this.props = [];
+
 }
 
 // inherit

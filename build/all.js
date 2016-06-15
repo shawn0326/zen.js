@@ -2427,6 +2427,15 @@ var DisplayObject = function() {
 
     this.invertConcatenatedMatrix = new Matrix();
 
+    // vertex array, example: [0, 1, 2, 2, 3, 0 ...]
+    this.indices = [];
+
+    // coords array, example: [x, y, x, y, x...]
+    this.coords = [];
+
+    // props array, example: [u, v, alpha, u, v, alpha...]
+    this.props = [];
+
 }
 
 // inherit
@@ -2660,21 +2669,29 @@ Sprite.prototype.setSourceFrame = function(x, y, width, height) {
 
 /**
  * get coords data of this
+ * [
+ *      0         , 0          ,
+ *      this.width, 0          ,
+ *      this.width, this.height,
+ *      0         , this.height
+ * ]
  **/
 Sprite.prototype.getCoords = function() {
-    var coords = [
-        0             , 0              ,
-        0 + this.width, 0              ,
-        0 + this.width, 0 + this.height,
-        0             , 0 + this.height
-    ];
-
-    return coords;
+    this.coords[0] = this.coords[1] = this.coords[3] = this.coords[6] = 0;
+    this.coords[2] = this.coords[4] = this.width;
+    this.coords[5] = this.coords[7] = this.height;
+    return this.coords;
 }
 
 /**
  * get props data of this
  * uv datas
+ * [
+ *     uvx      , uvy      ,
+ *     uvx + uvw, uvy      ,
+ *     uvx + uvw, uvy + uvh,
+ *     uvx      , uvy + uvh
+ * ]
  **/
 Sprite.prototype.getProps = function() {
     var textureInit = false;
@@ -2700,24 +2717,32 @@ Sprite.prototype.getProps = function() {
     var uvw = this.sourceFrame.width / textureWidth;
     var uvh = this.sourceFrame.height / textureHeight;
 
-    var props = [
-        uvx      , uvy      ,
-        uvx + uvw, uvy      ,
-        uvx + uvw, uvy + uvh,
-        uvx      , uvy + uvh
-    ];
+    this.props[0] = uvx;
+    this.props[1] = uvy;
+    this.props[2] = uvx + uvw;
+    this.props[3] = uvy;
 
-    return props;
+    this.props[4] = uvx + uvw;
+    this.props[5] = uvy + uvh;
+    this.props[6] = uvx;
+    this.props[7] = uvy + uvh;
+
+    return this.props;
 }
 
 /**
  * get indices data of this
  **/
 Sprite.prototype.getIndices = function() {
-    return [
-        0, 1, 2,
-        2, 3, 0
-    ];
+    this.indices[0] = 0;
+    this.indices[1] = 1;
+    this.indices[2] = 2;
+
+    this.indices[3] = 2;
+    this.indices[4] = 3;
+    this.indices[5] = 0;
+
+    return this.indices;
 };
 
 /**
@@ -2763,41 +2788,58 @@ Util.inherit(Rect, DisplayObject);
 
 /**
  * get coords data of this
+ * [
+ *      0         , 0          ,
+ *      this.width, 0          ,
+ *      this.width, this.height,
+ *      0         , this.height
+ * ]
  **/
 Rect.prototype.getCoords = function() {
-    var coords = [
-        0             , 0              ,
-        0 + this.width, 0              ,
-        0 + this.width, 0 + this.height,
-        0             , 0 + this.height
-    ];
+    this.coords[0] = this.coords[1] = this.coords[3] = this.coords[6] = 0;
+    this.coords[2] = this.coords[4] = this.width;
+    this.coords[5] = this.coords[7] = this.height;
 
     return coords;
 }
 
 /**
  * get props data of this
+ * no used!
+ * [
+ *     0, 0,
+ *     1, 0,
+ *     1, 1,
+ *     0, 1
+ * ]
  **/
 Rect.prototype.getProps = function() {
-    // no use
-    var props = [
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0
-    ];
+    this.props[0] = 0;
+    this.props[1] = 0;
+    this.props[2] = 0;
+    this.props[3] = 0;
 
-    return props;
+    this.props[4] = 0;
+    this.props[5] = 0;
+    this.props[6] = 0;
+    this.props[7] = 0;
+
+    return this.props;
 }
 
 /**
  * get indices data of this
  **/
 Rect.prototype.getIndices = function() {
-    return [
-        0, 1, 2,
-        2, 3, 0
-    ];
+    this.indices[0] = 0;
+    this.indices[1] = 1;
+    this.indices[2] = 2;
+
+    this.indices[3] = 2;
+    this.indices[4] = 3;
+    this.indices[5] = 0;
+
+    return this.indices;
 };
 
 /**
@@ -2918,6 +2960,12 @@ Object.defineProperties(Text.prototype, {
 
 /**
  * get coords data of this
+ * [
+ *      0         , 0          ,
+ *      this.width, 0          ,
+ *      this.width, this.height,
+ *      0         , this.height
+ * ]
  **/
 Text.prototype.getCoords = function() {
 
@@ -2929,12 +2977,9 @@ Text.prototype.getCoords = function() {
         this.height = this.$fontSize * 1.4;
     }
 
-    var coords = [
-        0             , 0              ,
-        0 + this.width, 0              ,
-        0 + this.width, 0 + this.height,
-        0             , 0 + this.height
-    ];
+    this.coords[0] = this.coords[1] = this.coords[3] = this.coords[6] = 0;
+    this.coords[2] = this.coords[4] = this.width;
+    this.coords[5] = this.coords[7] = this.height;
 
     return coords;
 }
@@ -2942,26 +2987,40 @@ Text.prototype.getCoords = function() {
 /**
  * get props data of this
  * uv datas
+ * [
+ *     0, 0,
+ *     1, 0,
+ *     1, 1,
+ *     0, 1
+ * ]
  **/
 Text.prototype.getProps = function() {
-    var props = [
-        0    , 0    ,
-        0 + 1, 0    ,
-        0 + 1, 0 + 1,
-        0    , 0 + 1
-    ];
+    this.props[0] = 0;
+    this.props[1] = 0;
+    this.props[2] = 1;
+    this.props[3] = 0;
 
-    return props;
+    this.props[4] = 1;
+    this.props[5] = 1;
+    this.props[6] = 0;
+    this.props[7] = 1;
+
+    return this.props;
 }
 
 /**
  * get indices data of this
  **/
 Text.prototype.getIndices = function() {
-    return [
-        0, 1, 2,
-        2, 3, 0
-    ];
+    this.indices[0] = 0;
+    this.indices[1] = 1;
+    this.indices[2] = 2;
+
+    this.indices[3] = 2;
+    this.indices[4] = 3;
+    this.indices[5] = 0;
+
+    return this.indices;
 };
 
 /**
