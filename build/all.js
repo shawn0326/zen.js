@@ -96,45 +96,6 @@ var Util = {
 
 }
 
-
-var PI = Math.PI;
-var HalfPI = PI / 2;
-var PacPI = PI + HalfPI;
-var TwoPI = PI * 2;
-var DEG_TO_RAD = PI / 180;
-
-function cos(angle) {
-    switch(angle) {
-        case HalfPI:
-        case -PacPI:
-            return 0;
-        case PI:
-        case -PI:
-            return -1;
-        case PacPI:
-        case -HalfPI:
-            return 0;
-        default:
-            return Math.cos(angle);
-    }
-}
-
-function sin(angle) {
-    switch (angle) {
-        case HalfPI:
-        case -PacPI:
-            return 1;
-        case PI:
-        case -PI:
-            return 0;
-        case PacPI:
-        case -HalfPI:
-            return -1;
-        default:
-            return Math.sin(angle);
-    }
-}
-
 /**
  * Matrix Class
  * Creates a new Matrix object with the specified parameters.
@@ -196,8 +157,8 @@ Matrix.prototype.set = function(a, b, c, d, tx, ty) {
 Matrix.prototype.rotate = function(angle) {
     angle = +angle; // parseFloat
     if(angle !== 0) {
-        var u = cos(angle);
-        var v = sin(angle);
+        var u = Math.cos(angle);
+        var v = Math.sin(angle);
         var ta = this.a;
         var tb = this.b;
         var tc = this.c;
@@ -252,12 +213,22 @@ Matrix.prototype.append = function(matrix) {
     var td = this.d;
     var ttx = this.tx;
     var tty = this.ty;
-    this.a = ta * matrix.a + tc * matrix.b;
-    this.b = tb * matrix.a + td * matrix.b;
-    this.c = ta * matrix.c + tc * matrix.d;
-    this.d = tb * matrix.c + td * matrix.d;
-    this.tx = ta * matrix.tx + tc * matrix.ty + ttx;
-    this.ty = tb * matrix.tx + td * matrix.ty + tty;
+    if(ta != 1 || tb != 0 || tc != 0 || td != 1) {
+        this.a = ta * matrix.a + tc * matrix.b;
+        this.b = tb * matrix.a + td * matrix.b;
+        this.c = ta * matrix.c + tc * matrix.d;
+        this.d = tb * matrix.c + td * matrix.d;
+        this.tx = ta * matrix.tx + tc * matrix.ty + ttx;
+        this.ty = tb * matrix.tx + td * matrix.ty + tty;
+    } else {
+        this.a = matrix.a;
+        this.b = matrix.b;
+        this.c = matrix.c;
+        this.d = matrix.d;
+        this.tx = matrix.tx + ttx;
+        this.ty = matrix.ty + tty;
+    }
+
 }
 
 /**
@@ -326,6 +297,51 @@ Matrix.prototype.invert = function() {
     d = this.d =  a * determinant;
     this.tx = -(k * tx + c * ty);
     this.ty = -(b * tx + d * ty);
+}
+
+/**
+ * transform matrix
+ **/
+Matrix.prototype.transform = function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
+    var cr = 1;
+    var sr = 0;
+    if (rotation % 360) {
+        var r = rotation;
+        cr = Math.cos(r);
+        sr = Math.sin(r);
+    }
+
+    this._append(cr * scaleX, sr * scaleX, -sr * scaleY, cr * scaleY, x, y);
+
+    if (anchorX || anchorY) {
+        // prepend the anchor offset:
+        this.tx -= anchorX * this.a + anchorY * this.c;
+        this.ty -= anchorX * this.b + anchorY * this.d;
+    }
+}
+
+Matrix.prototype._append = function(a, b, c, d, tx, ty) {
+    var ta = this.a;
+    var tb = this.b;
+    var tc = this.c;
+    var td = this.d;
+    var ttx = this.tx;
+    var tty = this.ty;
+    if(ta != 1 || tb != 0 || tc != 0 || td != 1) {
+        this.a = ta * a + tc * b;
+        this.b = tb * a + td * b;
+        this.c = ta * c + tc * d;
+        this.d = tb * c + td * d;
+        this.tx = ta * tx + tc * ty + ttx;
+        this.ty = tb * tx + td * ty + tty;
+    } else {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.d = d;
+        this.tx = tx + ttx;
+        this.ty = ty + tty;
+    }
 }
 
 /**
@@ -2481,10 +2497,13 @@ DisplayObject.prototype.getDrawData = function(render) {
 DisplayObject.prototype.getTransformMatrix = function() {
 
     this.transform.identify();
-    this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
-    this.transform.scale(this.scaleX, this.scaleY);
-    this.transform.rotate(this.rotation);
-    this.transform.translate(this.x, this.y);
+
+    // one call is better
+    this.transform.transform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX, this.anchorY);
+    // this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
+    // this.transform.scale(this.scaleX, this.scaleY);
+    // this.transform.rotate(this.rotation);
+    // this.transform.translate(this.x, this.y);
 
     return this.transform;
 }

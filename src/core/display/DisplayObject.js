@@ -86,10 +86,13 @@ DisplayObject.prototype.getDrawData = function(render) {
 DisplayObject.prototype.getTransformMatrix = function() {
 
     this.transform.identify();
-    this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
-    this.transform.scale(this.scaleX, this.scaleY);
-    this.transform.rotate(this.rotation);
-    this.transform.translate(this.x, this.y);
+
+    // one call is better
+    this.transform.transform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX, this.anchorY);
+    // this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
+    // this.transform.scale(this.scaleX, this.scaleY);
+    // this.transform.rotate(this.rotation);
+    // this.transform.translate(this.x, this.y);
 
     return this.transform;
 }
