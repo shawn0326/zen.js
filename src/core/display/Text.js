@@ -96,12 +96,6 @@ Object.defineProperties(Text.prototype, {
 
 /**
  * get coords data of this
- * [
- *      0         , 0          ,
- *      this.width, 0          ,
- *      this.width, this.height,
- *      0         , this.height
- * ]
  **/
 Text.prototype.getCoords = function() {
 
@@ -113,9 +107,12 @@ Text.prototype.getCoords = function() {
         this.height = this.$fontSize * 1.4;
     }
 
-    this.coords[0] = this.coords[1] = this.coords[3] = this.coords[6] = 0;
-    this.coords[2] = this.coords[4] = this.width;
-    this.coords[5] = this.coords[7] = this.height;
+    var coords = [
+        0             , 0              ,
+        0 + this.width, 0              ,
+        0 + this.width, 0 + this.height,
+        0             , 0 + this.height
+    ];
 
     return coords;
 }
@@ -123,40 +120,26 @@ Text.prototype.getCoords = function() {
 /**
  * get props data of this
  * uv datas
- * [
- *     0, 0,
- *     1, 0,
- *     1, 1,
- *     0, 1
- * ]
  **/
 Text.prototype.getProps = function() {
-    this.props[0] = 0;
-    this.props[1] = 0;
-    this.props[2] = 1;
-    this.props[3] = 0;
+    var props = [
+        0    , 0    ,
+        0 + 1, 0    ,
+        0 + 1, 0 + 1,
+        0    , 0 + 1
+    ];
 
-    this.props[4] = 1;
-    this.props[5] = 1;
-    this.props[6] = 0;
-    this.props[7] = 1;
-
-    return this.props;
+    return props;
 }
 
 /**
  * get indices data of this
  **/
 Text.prototype.getIndices = function() {
-    this.indices[0] = 0;
-    this.indices[1] = 1;
-    this.indices[2] = 2;
-
-    this.indices[3] = 2;
-    this.indices[4] = 3;
-    this.indices[5] = 0;
-
-    return this.indices;
+    return [
+        0, 1, 2,
+        2, 3, 0
+    ];
 };
 
 /**

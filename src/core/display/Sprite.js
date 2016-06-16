@@ -39,29 +39,21 @@ Sprite.prototype.setSourceFrame = function(x, y, width, height) {
 
 /**
  * get coords data of this
- * [
- *      0         , 0          ,
- *      this.width, 0          ,
- *      this.width, this.height,
- *      0         , this.height
- * ]
  **/
 Sprite.prototype.getCoords = function() {
-    this.coords[0] = this.coords[1] = this.coords[3] = this.coords[6] = 0;
-    this.coords[2] = this.coords[4] = this.width;
-    this.coords[5] = this.coords[7] = this.height;
-    return this.coords;
+    var coords = [
+        0             , 0              ,
+        0 + this.width, 0              ,
+        0 + this.width, 0 + this.height,
+        0             , 0 + this.height
+    ];
+
+    return coords;
 }
 
 /**
  * get props data of this
  * uv datas
- * [
- *     uvx      , uvy      ,
- *     uvx + uvw, uvy      ,
- *     uvx + uvw, uvy + uvh,
- *     uvx      , uvy + uvh
- * ]
  **/
 Sprite.prototype.getProps = function() {
     var textureInit = false;
@@ -87,32 +79,24 @@ Sprite.prototype.getProps = function() {
     var uvw = this.sourceFrame.width / textureWidth;
     var uvh = this.sourceFrame.height / textureHeight;
 
-    this.props[0] = uvx;
-    this.props[1] = uvy;
-    this.props[2] = uvx + uvw;
-    this.props[3] = uvy;
+    var props = [
+        uvx      , uvy      ,
+        uvx + uvw, uvy      ,
+        uvx + uvw, uvy + uvh,
+        uvx      , uvy + uvh
+    ];
 
-    this.props[4] = uvx + uvw;
-    this.props[5] = uvy + uvh;
-    this.props[6] = uvx;
-    this.props[7] = uvy + uvh;
-
-    return this.props;
+    return props;
 }
 
 /**
  * get indices data of this
  **/
 Sprite.prototype.getIndices = function() {
-    this.indices[0] = 0;
-    this.indices[1] = 1;
-    this.indices[2] = 2;
-
-    this.indices[3] = 2;
-    this.indices[4] = 3;
-    this.indices[5] = 0;
-
-    return this.indices;
+    return [
+        0, 1, 2,
+        2, 3, 0
+    ];
 };
 
 /**

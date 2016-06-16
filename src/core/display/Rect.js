@@ -18,58 +18,41 @@ Util.inherit(Rect, DisplayObject);
 
 /**
  * get coords data of this
- * [
- *      0         , 0          ,
- *      this.width, 0          ,
- *      this.width, this.height,
- *      0         , this.height
- * ]
  **/
 Rect.prototype.getCoords = function() {
-    this.coords[0] = this.coords[1] = this.coords[3] = this.coords[6] = 0;
-    this.coords[2] = this.coords[4] = this.width;
-    this.coords[5] = this.coords[7] = this.height;
+    var coords = [
+        0             , 0              ,
+        0 + this.width, 0              ,
+        0 + this.width, 0 + this.height,
+        0             , 0 + this.height
+    ];
 
     return coords;
 }
 
 /**
  * get props data of this
- * no used!
- * [
- *     0, 0,
- *     1, 0,
- *     1, 1,
- *     0, 1
- * ]
  **/
 Rect.prototype.getProps = function() {
-    this.props[0] = 0;
-    this.props[1] = 0;
-    this.props[2] = 0;
-    this.props[3] = 0;
+    // no use
+    var props = [
+        0, 0,
+        0, 0,
+        0, 0,
+        0, 0
+    ];
 
-    this.props[4] = 0;
-    this.props[5] = 0;
-    this.props[6] = 0;
-    this.props[7] = 0;
-
-    return this.props;
+    return props;
 }
 
 /**
  * get indices data of this
  **/
 Rect.prototype.getIndices = function() {
-    this.indices[0] = 0;
-    this.indices[1] = 1;
-    this.indices[2] = 2;
-
-    this.indices[3] = 2;
-    this.indices[4] = 3;
-    this.indices[5] = 0;
-
-    return this.indices;
+    return [
+        0, 1, 2,
+        2, 3, 0
+    ];
 };
 
 /**
