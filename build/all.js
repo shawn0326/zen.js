@@ -2632,8 +2632,9 @@ var Sprite = function() {
     // webGL texture
     this.texture = null;
 
-    // is source frame set
-    this.sourceFrameSet = false;
+    // is source frame default
+    // if is default source frame, skip calculate uv
+    this.defaultSourceFrame = true;
     // source frame
     this.sourceFrame = new Rectangle();
 
@@ -2646,16 +2647,16 @@ Util.inherit(Sprite, DisplayObject);
  * set source frame of this
  */
 Sprite.prototype.setSourceFrame = function(x, y, width, height) {
-    this.sourceFrameSet = true;
+    var sourceFrame = this.sourceFrame;
 
     if(arguments.length == 1) {
         // if argument is a rectangle
-        this.sourceFrame.copy(x);
+        sourceFrame.copy(x);
     } else {
-
-        this.sourceFrame.set(x, y, width, height);
+        sourceFrame.set(x, y, width, height);
     }
 
+    this.defaultSourceFrame = false;
 }
 
 /**
@@ -2677,37 +2678,46 @@ Sprite.prototype.getCoords = function() {
  * uv datas
  **/
 Sprite.prototype.getProps = function() {
-    var textureInit = false;
-    var textureWidth = 0;
-    var textureHeight = 0;
+    var props;
 
-    if(this.texture) {
-        textureInit = this.texture.isInit;
-        textureWidth = this.texture.width;
-        textureHeight = this.texture.height;
-    }
+    if(this.defaultSourceFrame) {
+        props = [
+            0, 0,
+            1, 0,
+            1, 1,
+            0, 1
+        ];
+    } else {
+        var texture = this.texture;
 
-    // if not set source frame, set source frame by texture
-    // if change texture, this will not auto change
-    if(!this.sourceFrameSet) {
-        if(textureInit) {
-            this.setSourceFrame(0, 0, textureWidth, textureHeight);
+        if(texture && texture.isInit) {
+            textureWidth = texture.width;
+            textureHeight = texture.height;
+
+            var sourceFrame = this.sourceFrame;
+            var uvx = sourceFrame.x / textureWidth;
+            var uvy = sourceFrame.y / textureHeight;
+            var uvw = sourceFrame.width / textureWidth;
+            var uvh = sourceFrame.height / textureHeight;
+
+            props = [
+                uvx      , uvy      ,
+                uvx + uvw, uvy      ,
+                uvx + uvw, uvy + uvh,
+                uvx      , uvy + uvh
+            ];
+        } else {
+            props = [
+                0, 0,
+                0, 0,
+                0, 0,
+                0, 0
+            ];
         }
     }
 
-    var uvx = this.sourceFrame.x / textureWidth;
-    var uvy = this.sourceFrame.y / textureHeight;
-    var uvw = this.sourceFrame.width / textureWidth;
-    var uvh = this.sourceFrame.height / textureHeight;
-
-    var props = [
-        uvx      , uvy      ,
-        uvx + uvw, uvy      ,
-        uvx + uvw, uvy + uvh,
-        uvx      , uvy + uvh
-    ];
-
     return props;
+
 }
 
 /**
