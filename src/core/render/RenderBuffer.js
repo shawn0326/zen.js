@@ -244,23 +244,31 @@ RenderBuffer.prototype.cacheVerticesAndIndices = function(coords, props, indices
         return;
     }
 
+    var verticesCount = this.verticesCount;
+    var indicesCount = this.indicesCount;
+
     // set vertices
     var t = transform, x = 0, y = 0;
+    var verticesArray = this.vertices;
+    var vertSize = this.vertSize;
     for(var i = 0; i < vertCount; i++) {
         // xy
         x = coords[i * coordSize + 0];
         y = coords[i * coordSize + 1];
-        this.vertices[(this.verticesCount + i) * this.vertSize + 0] = t.a * x + t.c * y + t.tx;
-        this.vertices[(this.verticesCount + i) * this.vertSize + 1] = t.b * x + t.d * y + t.ty;
+        verticesArray[(verticesCount + i) * vertSize + 0] = t.a * x + t.c * y + t.tx;
+        verticesArray[(verticesCount + i) * vertSize + 1] = t.b * x + t.d * y + t.ty;
         // props
+        var vertIndex = (verticesCount + i) * vertSize + coordSize;
+        var propIndex = i * propSize;
         for(var j = 0; j < propSize; j++) {
-            this.vertices[(this.verticesCount + i) * this.vertSize + coordSize + j] = props[i * propSize + j];
+            verticesArray[vertIndex + j] = props[propIndex + j];
         }
     }
 
     // set indices
-    for(var i = 0; i < indices.length; i++) {
-        this.indices[this.indicesCount + i] = indices[i] + this.verticesCount;
+    var indicesArray = this.indices;
+    for(var i = 0, l = indices.length; i < l; i++) {
+        indicesArray[indicesCount + i] = indices[i] + verticesCount;
     }
 
     // add count
