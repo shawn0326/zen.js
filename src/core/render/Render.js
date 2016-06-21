@@ -127,7 +127,10 @@ Render.prototype._render = function(displayObject) {
 
     // save matrix
     var transform = this.currentRenderBuffer.transform;
-    var matrix = Matrix.create();
+
+    // create matrix is slow, so i cache it on displayObject, even this looks ugly
+    // var matrix = Matrix.create();
+    var matrix = displayObject.parentTransform;
     matrix.copy(transform);
 
     // transform, use append to add transform matrix
@@ -232,7 +235,7 @@ Render.prototype._render = function(displayObject) {
 
     // restore matrix
     transform.copy(matrix);
-    Matrix.release(matrix);
+    // Matrix.release(matrix);
 };
 
 /**

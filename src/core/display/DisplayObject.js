@@ -22,6 +22,8 @@ var DisplayObject = function() {
 
     // a 4x4 transform matrix
     this.transform = new Matrix();
+    // used to cache parent transform
+    this.parentTransform = new Matrix();
 
     this.width = 0;
     this.height = 0;
