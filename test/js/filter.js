@@ -24,7 +24,6 @@ filter.grayScale(0.7);
 // ];
 // filter.negative();
 // filter.desaturate();
-var grayFilter = new GrayFilter(render.context);
 var blurXFilter = new BlurXFilter(render.context);
 blurXFilter.blurX = 2;
 var blurYFilter = new BlurYFilter(render.context);
