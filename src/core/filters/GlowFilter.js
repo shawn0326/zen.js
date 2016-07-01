@@ -1,15 +1,21 @@
 /**
  * glow filter
  **/
-var GlowFilter = function(gl) {
+var GlowFilter = function(gl, distance) {
 
-    this.shader = new GlowShader(gl);
+    distance = distance || 15;
 
-    this.distance = 10;
+    this.shader = new GlowShader(gl, distance);
 
+    // sample range, distance will effect glow size
+    this.distance = distance;
+
+    // glow color
     this.color = 0xff0000;
 
-    this.outerStrength = 2;
+    // outer glow strength
+    this.outerStrength = 1;
+    // inner glow strength
     this.innerStrength = 1;
 
 }
@@ -22,7 +28,7 @@ GlowFilter.prototype.applyFilter = function(render, input, output, offset) {
     this.shader.setColor(render.gl, this.color);
     this.shader.setOuterStrength(render.gl, this.outerStrength);
     this.shader.setInnerStrength(render.gl, this.innerStrength);
-    this.shader.setViewSize(render.gl, render.width, render.height);
+    this.shader.setViewSize(render.gl, input.width, input.height);
 
     offset = render.applyFilter(this, input, output, offset);
 

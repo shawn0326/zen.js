@@ -1797,9 +1797,9 @@ ColorTransformShader.prototype.setMatrix = function(gl, array) {
 }
 
 /**
- * GrayShader Class
+ * GlowShader Class
  **/
-var GrayShader = function(gl) {
+var GlowShader = function(gl) {
 
     var vshaderSource = [
         'attribute vec2 a_Position;',
@@ -1815,28 +1815,64 @@ var GrayShader = function(gl) {
 
     var fshaderSource = [
         'precision mediump float;',
-        'uniform sampler2D u_Sampler;',
+        // 'varying vec2 v_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'void main() {',
-            'vec4 color = texture2D(u_Sampler, v_TexCoord);',
-            'float gray = (color.r + color.g + color.b) / 3.0;',
-            'gl_FragColor = vec4(gray, gray, gray, color.a);',
-        '}'
+        // 'varying vec4 vColor;',
+
+        'uniform sampler2D uSampler;',
+
+        'uniform float distance;',
+        'uniform float outerStrength;',
+        'uniform float innerStrength;',
+        'uniform vec4 glowColor;',
+        'uniform float pixelWidth;',
+        'uniform float pixelHeight;',
+        'vec2 px = vec2(1.0 / pixelWidth, 1.0 / pixelHeight);',
+
+        'void main(void) {',
+            'const float quality = 8.0;',
+            'const float PI = 3.14159265358979323846264;',
+            'vec4 ownColor = texture2D(uSampler, v_TexCoord);',
+            'vec4 curColor;',
+            'float totalAlpha = 0.0;',
+            'float maxTotalAlpha = 0.0;',
+            'float cosAngle;',
+            'float sinAngle;',
+            'float curDistance = 0.0;',
+            'for (float angle = 0.0; angle <= PI * 2.0; angle += PI * 2.0 / quality) {',
+               'cosAngle = cos(angle);',
+               'sinAngle = sin(angle);',
+               'for (float d = 1.0; d <= quality; d++) {',
+                   'curDistance = float(d) * distance / 10.0;',
+                   'curColor = texture2D(uSampler, vec2(v_TexCoord.x + cosAngle * curDistance * px.x, v_TexCoord.y + sinAngle * curDistance * px.y));',
+                   'totalAlpha += (distance - curDistance) * curColor.a;',
+                   'maxTotalAlpha += (distance - curDistance);',
+               '}',
+            '}',
+            'maxTotalAlpha = max(maxTotalAlpha, 0.0001);',
+
+            'ownColor.a = max(ownColor.a, 0.0001);',
+            'ownColor.rgb = ownColor.rgb / ownColor.a;',
+            'float outerGlowAlpha = (totalAlpha / maxTotalAlpha)  * outerStrength * (1. - ownColor.a);',
+            'float innerGlowAlpha = ((maxTotalAlpha - totalAlpha) / maxTotalAlpha) * innerStrength * ownColor.a;',
+            'float resultAlpha = (ownColor.a + outerGlowAlpha);',
+            'gl_FragColor = vec4(mix(mix(ownColor.rgb, glowColor.rgb, innerGlowAlpha / ownColor.a), glowColor.rgb, outerGlowAlpha / resultAlpha) * resultAlpha, resultAlpha);',
+        '}',
     ].join("\n");
 
-    GrayShader.superClass.constructor.call(this, gl, vshaderSource, fshaderSource);
+    GlowShader.superClass.constructor.call(this, gl, vshaderSource, fshaderSource);
 
 }
 
 // inherit
-Util.inherit(GrayShader, Shader);
+Util.inherit(GlowShader, Shader);
 
 /**
  * activate this shader
  **/
-GrayShader.prototype.activate = function(gl, width, height) {
+GlowShader.prototype.activate = function(gl, width, height) {
 
-    GrayShader.superClass.activate.call(this, gl, width, height);
+    BlurYShader.superClass.activate.call(this, gl, width, height);
 
     // set attributes
     var a_Position = gl.getAttribLocation(this.program, "a_Position");
@@ -1851,6 +1887,63 @@ GrayShader.prototype.activate = function(gl, width, height) {
     var u_Sampler = gl.getUniformLocation(this.program, "u_Sampler");
     gl.uniform1i(u_Sampler, 0);
 
+}
+
+/**
+ * setDistance
+ **/
+GlowShader.prototype.setDistance = function(gl, distance) {
+    // sync uniform
+    var u_Distance = gl.getUniformLocation(this.program, "distance");
+
+    gl.uniform1f(u_Distance, distance);
+}
+
+/**
+ * setColor
+ **/
+GlowShader.prototype.setColor = function(gl, color) {
+    // sync uniform
+    var u_Color = gl.getUniformLocation(this.program, "glowColor");
+    var num = parseInt(color, 10);
+    var r = num / (16 * 16 * 16 * 16);
+    var g = num % (16 * 16 * 16 * 16) / (16 * 16);
+    var b = num % (16 * 16) / 1;
+    gl.uniform4f(u_Color, r / 256, g / 256, b / 256, 1.0);
+}
+
+/**
+ * setOuterStrength
+ **/
+GlowShader.prototype.setOuterStrength = function(gl, strength) {
+    // sync uniform
+    var u_Strength = gl.getUniformLocation(this.program, "outerStrength");
+
+    gl.uniform1f(u_Strength, strength);
+}
+
+/**
+ * setInnerStrength
+ **/
+GlowShader.prototype.setInnerStrength = function(gl, strength) {
+    // sync uniform
+    var u_Strength = gl.getUniformLocation(this.program, "innerStrength");
+
+    gl.uniform1f(u_Strength, strength);
+}
+
+/**
+ * setViewSize
+ **/
+GlowShader.prototype.setViewSize = function(gl, width, height) {
+    // sync uniform
+    var u_pixelWidth = gl.getUniformLocation(this.program, "pixelWidth");
+
+    gl.uniform1f(u_pixelWidth, width);
+
+    var u_pixelHeight = gl.getUniformLocation(this.program, "pixelHeight");
+
+    gl.uniform1f(u_pixelHeight, height);
 }
 
 /**
@@ -2208,18 +2301,36 @@ ColorTransformFilter.prototype.applyFilter = function(render, input, output, off
 }
 
 /**
- * gray filter
+ * glow filter
  **/
-var GrayFilter = function(gl) {
+var GlowFilter = function(gl, distance) {
 
-    this.shader = new GrayShader(gl);
+    distance = distance || 15;
+
+    this.shader = new GlowShader(gl, distance);
+
+    // sample range, distance will effect glow size
+    this.distance = distance;
+
+    // glow color
+    this.color = 0xff0000;
+
+    // outer glow strength
+    this.outerStrength = 1;
+    // inner glow strength
+    this.innerStrength = 1;
 
 }
 
-Util.inherit(GrayFilter, AbstractFilter);
+Util.inherit(GlowFilter, AbstractFilter);
 
-GrayFilter.prototype.applyFilter = function(render, input, output, offset) {
+GlowFilter.prototype.applyFilter = function(render, input, output, offset) {
     render.activateShader(this.shader);
+    this.shader.setDistance(render.gl, this.distance);
+    this.shader.setColor(render.gl, this.color);
+    this.shader.setOuterStrength(render.gl, this.outerStrength);
+    this.shader.setInnerStrength(render.gl, this.innerStrength);
+    this.shader.setViewSize(render.gl, input.width, input.height);
 
     offset = render.applyFilter(this, input, output, offset);
 
