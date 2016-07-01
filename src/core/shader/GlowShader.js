@@ -21,7 +21,7 @@ var GlowShader = function(gl) {
         'varying vec2 v_TexCoord;',
         // 'varying vec4 vColor;',
 
-        'uniform sampler2D uSampler;',
+        'uniform sampler2D u_Sampler;',
 
         'uniform float distance;',
         'uniform float outerStrength;',
@@ -34,7 +34,7 @@ var GlowShader = function(gl) {
         'void main(void) {',
             'const float quality = 8.0;',
             'const float PI = 3.14159265358979323846264;',
-            'vec4 ownColor = texture2D(uSampler, v_TexCoord);',
+            'vec4 ownColor = texture2D(u_Sampler, v_TexCoord);',
             'vec4 curColor;',
             'float totalAlpha = 0.0;',
             'float maxTotalAlpha = 0.0;',
@@ -46,7 +46,7 @@ var GlowShader = function(gl) {
                'sinAngle = sin(angle);',
                'for (float d = 1.0; d <= quality; d++) {',
                    'curDistance = float(d) * distance / 10.0;',
-                   'curColor = texture2D(uSampler, vec2(v_TexCoord.x + cosAngle * curDistance * px.x, v_TexCoord.y + sinAngle * curDistance * px.y));',
+                   'curColor = texture2D(u_Sampler, vec2(v_TexCoord.x + cosAngle * curDistance * px.x, v_TexCoord.y + sinAngle * curDistance * px.y));',
                    'totalAlpha += (distance - curDistance) * curColor.a;',
                    'maxTotalAlpha += (distance - curDistance);',
                '}',

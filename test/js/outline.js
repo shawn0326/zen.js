@@ -9,18 +9,16 @@ var container = new DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
-var glowFilter = new GlowFilter(render.context);
-glowFilter.distance = 15;
-// glowFilter.innerStrength = 0;
-glowFilter.outerStrength = 0;
-glowFilter.color = 0x00ffff;
+var outlineFilter = new OutlineFilter(render.context);
+outlineFilter.thickness = 4;
+outlineFilter.color = 0x00ffff;
 
 var num = 1;
 for(var i = 0; i < num; i++) {
     var sprite = new Sprite();
     sprite.texture = texture;
     // sprite.color = 0x475846;
-    sprite.filters = [glowFilter];
+    sprite.filters = [outlineFilter];
     sprite.x = 480 / 2;
     sprite.y = 800 / 2;
     sprite.width = 400;
@@ -50,10 +48,6 @@ function loop() {
     {
     //    sprites[i].rotation += 0.1;
     }
-
-    glowFilter.outerStrength = 1 + 1 * Math.abs(Math.sin(colorValue));
-
-    glowFilter.innerStrength = 0 + 1 * Math.abs(Math.sin(colorValue));
 
     // render.clear();
 
