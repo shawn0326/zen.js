@@ -1982,12 +1982,12 @@ var OutlineShader = function(gl) {
             'vec4 ownColor = texture2D(u_Sampler, v_TexCoord);',
             'vec4 curColor;',
             'float maxAlpha = 0.;',
-            'for (float angle = 0.; angle < PI * 2.; angle += PI * 2. / quality ) {',
+            'for (float angle = 0.; angle <= PI * 2.; angle += (PI * 2.) / quality ) {',
                 'curColor = texture2D(u_Sampler, vec2(v_TexCoord.x + thickness * px.x * cos(angle), v_TexCoord.y + thickness * px.y * sin(angle)));',
                 'maxAlpha = max(maxAlpha, curColor.a);',
             '}',
             'float resultAlpha = max(maxAlpha, ownColor.a);',
-            'gl_FragColor = vec4((ownColor.rgb * (1. - ownColor.a) + outlineColor.rgb * (1. - ownColor.a)) * resultAlpha, resultAlpha);',
+            'gl_FragColor = vec4((ownColor.rgb * ownColor.a + outlineColor.rgb * (1. - ownColor.a)) * resultAlpha, resultAlpha);',
         '}'
     ].join("\n");
 
