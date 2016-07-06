@@ -41,7 +41,7 @@ var GlowShader = function(gl) {
             'float cosAngle;',
             'float sinAngle;',
             'float curDistance = 0.0;',
-            'for (float angle = 0.0; angle <= PI * 2.0; angle += PI * 2.0 / quality) {',
+            'for (float angle = PI * 2.0 / quality; angle <= PI * 2.0; angle += PI * 2.0 / quality) {',
                'cosAngle = cos(angle);',
                'sinAngle = sin(angle);',
                'for (float d = 1.0; d <= quality; d++) {',
@@ -57,8 +57,10 @@ var GlowShader = function(gl) {
             'ownColor.rgb = ownColor.rgb / ownColor.a;',
             'float outerGlowAlpha = (totalAlpha / maxTotalAlpha)  * outerStrength * (1. - ownColor.a);',
             'float innerGlowAlpha = ((maxTotalAlpha - totalAlpha) / maxTotalAlpha) * innerStrength * ownColor.a;',
-            'float resultAlpha = (ownColor.a + outerGlowAlpha);',
-            'gl_FragColor = vec4(mix(mix(ownColor.rgb, glowColor.rgb, innerGlowAlpha / ownColor.a), glowColor.rgb, outerGlowAlpha / resultAlpha) * resultAlpha, resultAlpha);',
+            'vec3 mix1 = mix(ownColor.rgb, glowColor.rgb, innerGlowAlpha / (innerGlowAlpha + ownColor.a));',
+            'vec3 mix2 = mix(mix1, glowColor.rgb, outerGlowAlpha / (innerGlowAlpha + ownColor.a + outerGlowAlpha));',
+            'float resultAlpha = min(ownColor.a + outerGlowAlpha + innerGlowAlpha, 1.);',
+            'gl_FragColor = vec4(mix2 * resultAlpha, resultAlpha);',
         '}',
     ].join("\n");
 
