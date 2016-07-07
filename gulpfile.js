@@ -31,12 +31,14 @@ var filesSrc = [
     "core/shader/ColorTransformShader.js",
     "core/shader/GlowShader.js",
     "core/shader/OutlineShader.js",
+    "core/shader/AsciiShader.js",
     "core/shader/BlurXShader.js",
     "core/shader/BlurYShader.js",
     "core/filters/AbstractFilter.js",
     "core/filters/ColorTransformFilter.js",
     "core/filters/GlowFilter.js",
     "core/filters/OutlineFilter.js",
+    "core/filters/AsciiFilter.js",
     "core/filters/BlurXFilter.js",
     "core/filters/BlurYFilter.js",
     "core/event/EventDispatcher.js",
@@ -75,4 +77,3 @@ gulp.task("build", function() {
 gulp.task("watch", ['build'], function() {
     gulp.watch(filesSrc, ['build']);
 });
-

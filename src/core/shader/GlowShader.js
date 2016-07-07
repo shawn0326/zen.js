@@ -76,7 +76,7 @@ Util.inherit(GlowShader, Shader);
  **/
 GlowShader.prototype.activate = function(gl, width, height) {
 
-    BlurYShader.superClass.activate.call(this, gl, width, height);
+    GlowShader.superClass.activate.call(this, gl, width, height);
 
     // set attributes
     var a_Position = gl.getAttribLocation(this.program, "a_Position");
