@@ -45,7 +45,7 @@ var GlowShader = function(gl) {
                'cosAngle = cos(angle);',
                'sinAngle = sin(angle);',
                'for (float d = 1.0; d <= quality; d++) {',
-                   'curDistance = float(d) * distance / 10.0;',
+                   'curDistance = d * distance / quality;',
                    'curColor = texture2D(u_Sampler, vec2(v_TexCoord.x + cosAngle * curDistance * px.x, v_TexCoord.y + sinAngle * curDistance * px.y));',
                    'totalAlpha += (distance - curDistance) * curColor.a;',
                    'maxTotalAlpha += (distance - curDistance);',
