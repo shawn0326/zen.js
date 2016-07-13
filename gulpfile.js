@@ -48,6 +48,7 @@ var filesSrc = [
     "core/event/EventDispatcher.js",
     "core/event/Event.js",
     "core/event/TouchEvent.js",
+    "core/event/LoadEvent.js",
     "core/display/DisplayObject.js",
     "core/display/DisplayObjectContainer.js",
     "core/display/Sprite.js",
@@ -58,6 +59,7 @@ var filesSrc = [
     "extension/State.js",
     "extension/TouchHandler.js",
     "extension/ScreenAdapter.js",
+    "extension/Loader.js"
 ];
 
 for(var i = 0, l = filesSrc.length; i < l; i++) {
