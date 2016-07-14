@@ -726,11 +726,6 @@ Render.prototype.render = function(displayObject) {
  **/
 Render.prototype._render = function(displayObject) {
 
-    // if buffer count reached max size, auto flush
-    if(this.currentRenderBuffer.reachedMaxSize()) {
-        this.flush();
-    }
-
     // save matrix
     var transform = this.currentRenderBuffer.transform;
 
@@ -766,11 +761,7 @@ Render.prototype._render = function(displayObject) {
         // TODO handle mask
         var mask = displayObject.mask;
 
-        if(this.currentRenderBuffer.reachedMaxSize()) {
-            this.flush();
-        }
-
-        this.currentRenderBuffer.cacheQuad(mask.x, mask.y, mask.width, mask.height, transform);
+        this.currentRenderBuffer.cacheQuad(this, mask.x, mask.y, mask.width, mask.height, transform);
 
         this.currentRenderBuffer.cacheMaskPush(displayObject.mask);
     }
@@ -792,7 +783,7 @@ Render.prototype._render = function(displayObject) {
 
     } else {
         // cache display object
-        this.currentRenderBuffer.cache(displayObject);
+        this.currentRenderBuffer.cache(this, displayObject);
     }
 
     // if blend, reset blend mode
@@ -805,11 +796,7 @@ Render.prototype._render = function(displayObject) {
         // TODO handle mask
         var mask = displayObject.mask;
 
-        if(this.currentRenderBuffer.reachedMaxSize()) {
-            this.flush();
-        }
-
-        this.currentRenderBuffer.cacheQuad(mask.x, mask.y, mask.width, mask.height, transform);
+        this.currentRenderBuffer.cacheQuad(this, mask.x, mask.y, mask.width, mask.height, transform);
 
         this.currentRenderBuffer.cacheMaskPop();
     }
@@ -818,23 +805,14 @@ Render.prototype._render = function(displayObject) {
     if(displayObject.filters.length > 0) {
 
         for(var i = 0; i < displayObject.filters.length - 1; i++) {
-
-            if(this.currentRenderBuffer.reachedMaxSize()) {
-                this.flush();
-            }
-
-            this.currentRenderBuffer.cacheQuad(0, 0, displayObject.width, displayObject.height, transform);
+            this.currentRenderBuffer.cacheQuad(this, 0, 0, displayObject.width, displayObject.height, transform);
         }
 
         transform.copy(filterMatrix);
         Matrix.release(filterMatrix);
 
-        if(this.currentRenderBuffer.reachedMaxSize()) {
-            this.flush();
-        }
-
         // last time, push vertices by real transform
-        this.currentRenderBuffer.cacheQuad(0, 0, displayObject.width, displayObject.height, transform);
+        this.currentRenderBuffer.cacheQuad(this, 0, 0, displayObject.width, displayObject.height, transform);
 
         this.currentRenderBuffer.cacheFiltersPop();
     }
@@ -1215,25 +1193,28 @@ RenderTarget.prototype.destroy = function() {
 var RenderBuffer = function(gl) {
     this.gl = gl;
 
-    // max size of vertices
-    this.maxVertices = 2000 * 4;
-    // max size of indices
-    this.maxIndices = 2000 * 6;
-    // vertex size
-    this.vertSize = 4;
-
     // current count of vertices
     this.verticesCount = 0;
-    // current count of Indices
-    this.indicesCount = 0;
+
+    // max size of vertices array
+    this.maxVerticesIndex = 2000 * 4 * 5;
+
+    // max size of indices array
+    this.maxIndicesIndex = 2000 * 6;
+
+    // now index of vertices
+    this.verticesIndex = 0;
+
+    // now index of indices
+    this.indicesIndex = 0;
 
     // a array to save draw data, because we just draw once on webgl in the end of the frame
     this.drawData = [];
 
     // vertex array
-    this.vertices = new Float32Array(this.maxVertices * this.vertSize);
+    this.vertices = new Float32Array(this.maxVerticesIndex);
     this.vertexBuffer = gl.createBuffer();
-    this.indices = new Uint16Array(this.maxIndices);
+    this.indices = new Uint16Array(this.maxIndicesIndex);
     this.indexBuffer = gl.createBuffer();
 
     // transform
@@ -1255,31 +1236,33 @@ RenderBuffer.prototype.activate = function() {
 RenderBuffer.prototype.upload = function() {
     var gl = this.gl;
     // upload vertices and indices, i found that bufferSubData performance bad than bufferData, is that right?
-    var vertices_view = this.vertices.subarray(0, this.verticesCount * this.vertSize);
+    var vertices_view = this.vertices.subarray(0, this.verticesIndex);
     gl.bufferData(gl.ARRAY_BUFFER, vertices_view, gl.STREAM_DRAW);
     // TODO indices should upload just once
-    var indices_view = this.indices.subarray(0, this.indicesCount);
+    var indices_view = this.indices.subarray(0, this.indicesIndex);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices_view, gl.STATIC_DRAW);
 };
 
 /**
  * check is reached max size
  */
-RenderBuffer.prototype.reachedMaxSize = function() {
-    return (this.verticesCount >= this.maxVertices - 4 || this.indicesCount >= this.maxIndices - 6);// TODO minus max num buffer can cache
+RenderBuffer.prototype.reachedMaxSize = function(verticesCount, indicesCount) {
+    var _verticesCount = verticesCount || 4;
+    var _indicesCount = indicesCount || 6;
+    return (this.verticesIndex >= this.maxVerticesIndex - _verticesCount || this.indicesIndex >= this.maxIndicesIndex - _indicesCount);
 };
 
 /**
  * cache draw datas from a displayObject
  */
-RenderBuffer.prototype.cache = function(displayObject) {
+RenderBuffer.prototype.cache = function(render, displayObject) {
     var transform = this.transform;
 
     var coords = displayObject.getCoords();
     var props = displayObject.getProps();
     var indices = displayObject.getIndices();
 
-    this.cacheVerticesAndIndices(coords, props, indices, transform);
+    this.cacheVerticesAndIndices(render, coords, props, indices, transform);
 
     var type = displayObject.type;
     var data = null;
@@ -1409,7 +1392,7 @@ RenderBuffer.prototype.cacheMaskPop = function() {
 /**
  * help function to cache quad vertices
  */
-RenderBuffer.prototype.cacheQuad = function(x, y, width, height, transform) {
+RenderBuffer.prototype.cacheQuad = function(render, x, y, width, height, transform) {
     var coords = [
         x        , y         ,
         x + width, y         ,
@@ -1427,48 +1410,47 @@ RenderBuffer.prototype.cacheQuad = function(x, y, width, height, transform) {
         2, 3, 0
     ];
 
-    this.cacheVerticesAndIndices(coords, props, indices, transform);
+    this.cacheVerticesAndIndices(render, coords, props, indices, transform);
 }
 
 /**
  * cache vertices and indices data
+ * @param render {Render} if overflow, flush this render
  * @param coords {number[]} coords array
  * @param props {number[]} props array
  * @param indices {number[]} indices array
  * @param transform {Matrix} global transform
  */
-RenderBuffer.prototype.cacheVerticesAndIndices = function(coords, props, indices, transform) {
+RenderBuffer.prototype.cacheVerticesAndIndices = function(render, coords, props, indices, transform) {
 
-    // the size of coord
-    var coordSize = 2;
+    var coordSize = 2,// the size of coord
+    coordsLen = coords.length,
+    propsLen = props.length,
+    indicesLen = indices.length,
+    vertCount = coordsLen / coordSize,// vertex count
+    propSize = propsLen / vertCount,// the size of props
+    vertSize = coordSize + propSize;// the size of one vert
 
-    // the size of props
-    var propSize = this.vertSize - coordSize;
-
-    // vertex count
-    var vertCount = coords.length / coordSize;
-
-    // check size match
-    if(vertCount != props.length / propSize) {
-        console.log("coords size and props size cannot match!");
-        return;
+    // check overflow
+    if(this.reachedMaxSize(coordsLen + propsLen, indicesLen)) {
+        render.flush();
     }
 
     var verticesCount = this.verticesCount;
-    var indicesCount = this.indicesCount;
+    var verticesIndex = this.verticesIndex;
+    var indicesIndex = this.indicesIndex;
 
     // set vertices
     var t = transform, x = 0, y = 0;
     var verticesArray = this.vertices;
-    var vertSize = this.vertSize;
     for(var i = 0; i < vertCount; i++) {
         // xy
         x = coords[i * coordSize + 0];
         y = coords[i * coordSize + 1];
-        verticesArray[(verticesCount + i) * vertSize + 0] = t.a * x + t.c * y + t.tx;
-        verticesArray[(verticesCount + i) * vertSize + 1] = t.b * x + t.d * y + t.ty;
+        verticesArray[verticesIndex + i * vertSize + 0] = t.a * x + t.c * y + t.tx;
+        verticesArray[verticesIndex + i * vertSize + 1] = t.b * x + t.d * y + t.ty;
         // props
-        var vertIndex = (verticesCount + i) * vertSize + coordSize;
+        var vertIndex = verticesIndex + i * vertSize + coordSize;
         var propIndex = i * propSize;
         for(var j = 0; j < propSize; j++) {
             verticesArray[vertIndex + j] = props[propIndex + j];
@@ -1477,13 +1459,14 @@ RenderBuffer.prototype.cacheVerticesAndIndices = function(coords, props, indices
 
     // set indices
     var indicesArray = this.indices;
-    for(var i = 0, l = indices.length; i < l; i++) {
-        indicesArray[indicesCount + i] = indices[i] + verticesCount;
+    for(var i = 0, l = indicesLen; i < l; i++) {
+        indicesArray[indicesIndex + i] = indices[i] + verticesCount;
     }
 
     // add count
     this.verticesCount += vertCount;
-    this.indicesCount += indices.length;
+    this.verticesIndex += vertCount * vertSize;
+    this.indicesIndex += indicesLen;
 }
 
 /**
@@ -1498,7 +1481,8 @@ RenderBuffer.prototype.clear = function() {
     this.drawData.length = 0;
 
     this.verticesCount = 0;
-    this.indicesCount = 0;
+    this.verticesIndex = 0;
+    this.indicesIndex = 0;
 };
 
 /**

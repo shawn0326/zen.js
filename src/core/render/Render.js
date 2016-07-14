@@ -120,11 +120,6 @@ Render.prototype.render = function(displayObject) {
  **/
 Render.prototype._render = function(displayObject) {
 
-    // if buffer count reached max size, auto flush
-    if(this.currentRenderBuffer.reachedMaxSize()) {
-        this.flush();
-    }
-
     // save matrix
     var transform = this.currentRenderBuffer.transform;
 
@@ -160,11 +155,7 @@ Render.prototype._render = function(displayObject) {
         // TODO handle mask
         var mask = displayObject.mask;
 
-        if(this.currentRenderBuffer.reachedMaxSize()) {
-            this.flush();
-        }
-
-        this.currentRenderBuffer.cacheQuad(mask.x, mask.y, mask.width, mask.height, transform);
+        this.currentRenderBuffer.cacheQuad(this, mask.x, mask.y, mask.width, mask.height, transform);
 
         this.currentRenderBuffer.cacheMaskPush(displayObject.mask);
     }
@@ -186,7 +177,7 @@ Render.prototype._render = function(displayObject) {
 
     } else {
         // cache display object
-        this.currentRenderBuffer.cache(displayObject);
+        this.currentRenderBuffer.cache(this, displayObject);
     }
 
     // if blend, reset blend mode
@@ -199,11 +190,7 @@ Render.prototype._render = function(displayObject) {
         // TODO handle mask
         var mask = displayObject.mask;
 
-        if(this.currentRenderBuffer.reachedMaxSize()) {
-            this.flush();
-        }
-
-        this.currentRenderBuffer.cacheQuad(mask.x, mask.y, mask.width, mask.height, transform);
+        this.currentRenderBuffer.cacheQuad(this, mask.x, mask.y, mask.width, mask.height, transform);
 
         this.currentRenderBuffer.cacheMaskPop();
     }
@@ -212,23 +199,14 @@ Render.prototype._render = function(displayObject) {
     if(displayObject.filters.length > 0) {
 
         for(var i = 0; i < displayObject.filters.length - 1; i++) {
-
-            if(this.currentRenderBuffer.reachedMaxSize()) {
-                this.flush();
-            }
-
-            this.currentRenderBuffer.cacheQuad(0, 0, displayObject.width, displayObject.height, transform);
+            this.currentRenderBuffer.cacheQuad(this, 0, 0, displayObject.width, displayObject.height, transform);
         }
 
         transform.copy(filterMatrix);
         Matrix.release(filterMatrix);
 
-        if(this.currentRenderBuffer.reachedMaxSize()) {
-            this.flush();
-        }
-
         // last time, push vertices by real transform
-        this.currentRenderBuffer.cacheQuad(0, 0, displayObject.width, displayObject.height, transform);
+        this.currentRenderBuffer.cacheQuad(this, 0, 0, displayObject.width, displayObject.height, transform);
 
         this.currentRenderBuffer.cacheFiltersPop();
     }
