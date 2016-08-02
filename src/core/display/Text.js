@@ -143,23 +143,6 @@ Text.prototype.getIndices = function() {
 };
 
 /**
- * get draw data of this
- **/
-Text.prototype.getDrawData = function() {
-    var data = DrawData.getObject();
-
-    // if dirty, update texture
-    if(this.dirty) {
-        this.updateTexture();
-        this.dirty = false;
-    }
-
-    data.texture = this.texture;
-    data.filters = this.filters;
-    return data;
-};
-
-/**
  * update texture
  */
 Text.prototype.updateTexture = function() {

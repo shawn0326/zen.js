@@ -69,20 +69,6 @@ DisplayObject.prototype.getIndices = function() {
 };
 
 /**
- * get draw data of this
- **/
-DisplayObject.prototype.getDrawData = function(render) {
-
-};
-
-/**
- * prepare draw for a render
- **/
-// DisplayObject.prototype.prepareDraw = function(render) {
-//
-// };
-
-/**
  * get the transform matrix
  **/
 DisplayObject.prototype.getTransformMatrix = function() {

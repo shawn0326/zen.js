@@ -81,7 +81,9 @@ RenderBuffer.prototype.cache = function(render, displayObject) {
     switch (type) {
         case DISPLAY_TYPE.SPRITE:
             if(displayObject.filters.length > 0 || this.drawData.length == 0 || this.drawData[this.drawData.length - 1].cmd != RENDER_CMD.TEXTURE || this.drawData[this.drawData.length - 1].texture != displayObject.texture) {
-                data = displayObject.getDrawData();
+                data = DrawData.getObject();
+                data.texture = displayObject.texture;
+                data.filters = displayObject.filters;
 
                 data.cmd = RENDER_CMD.TEXTURE;
                 this.drawData.push(data);
@@ -93,7 +95,8 @@ RenderBuffer.prototype.cache = function(render, displayObject) {
 
         case DISPLAY_TYPE.RECT:
             if(displayObject.filters.length > 0 || this.drawData.length == 0 || this.drawData[this.drawData.length - 1].cmd != RENDER_CMD.RECT || this.drawData[this.drawData.length - 1].color != displayObject.color) {
-                data = displayObject.getDrawData();
+                data = DrawData.getObject();
+                data.color = displayObject.color;
 
                 data.cmd = RENDER_CMD.RECT;
                 this.drawData.push(data);
@@ -104,7 +107,16 @@ RenderBuffer.prototype.cache = function(render, displayObject) {
             break;
 
         case DISPLAY_TYPE.TEXT:
-            data = displayObject.getDrawData();
+            var data = DrawData.getObject();
+
+            // if dirty, update texture
+            if(displayObject.dirty) {
+                displayObject.updateTexture();
+                displayObject.dirty = false;
+            }
+
+            data.texture = displayObject.texture;
+            data.filters = displayObject.filters;
 
             data.cmd = RENDER_CMD.TEXTURE;
             this.drawData.push(data);

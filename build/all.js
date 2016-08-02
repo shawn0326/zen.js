@@ -1250,7 +1250,9 @@ RenderBuffer.prototype.cache = function(render, displayObject) {
     switch (type) {
         case DISPLAY_TYPE.SPRITE:
             if(displayObject.filters.length > 0 || this.drawData.length == 0 || this.drawData[this.drawData.length - 1].cmd != RENDER_CMD.TEXTURE || this.drawData[this.drawData.length - 1].texture != displayObject.texture) {
-                data = displayObject.getDrawData();
+                data = DrawData.getObject();
+                data.texture = displayObject.texture;
+                data.filters = displayObject.filters;
 
                 data.cmd = RENDER_CMD.TEXTURE;
                 this.drawData.push(data);
@@ -1262,7 +1264,8 @@ RenderBuffer.prototype.cache = function(render, displayObject) {
 
         case DISPLAY_TYPE.RECT:
             if(displayObject.filters.length > 0 || this.drawData.length == 0 || this.drawData[this.drawData.length - 1].cmd != RENDER_CMD.RECT || this.drawData[this.drawData.length - 1].color != displayObject.color) {
-                data = displayObject.getDrawData();
+                data = DrawData.getObject();
+                data.color = displayObject.color;
 
                 data.cmd = RENDER_CMD.RECT;
                 this.drawData.push(data);
@@ -1273,7 +1276,16 @@ RenderBuffer.prototype.cache = function(render, displayObject) {
             break;
 
         case DISPLAY_TYPE.TEXT:
-            data = displayObject.getDrawData();
+            var data = DrawData.getObject();
+
+            // if dirty, update texture
+            if(displayObject.dirty) {
+                displayObject.updateTexture();
+                displayObject.dirty = false;
+            }
+
+            data.texture = displayObject.texture;
+            data.filters = displayObject.filters;
 
             data.cmd = RENDER_CMD.TEXTURE;
             this.drawData.push(data);
@@ -3117,20 +3129,6 @@ DisplayObject.prototype.getIndices = function() {
 };
 
 /**
- * get draw data of this
- **/
-DisplayObject.prototype.getDrawData = function(render) {
-
-};
-
-/**
- * prepare draw for a render
- **/
-// DisplayObject.prototype.prepareDraw = function(render) {
-//
-// };
-
-/**
  * get the transform matrix
  **/
 DisplayObject.prototype.getTransformMatrix = function() {
@@ -3396,29 +3394,6 @@ Sprite.prototype.getIndices = function() {
 };
 
 /**
- * get draw data of this
- **/
-Sprite.prototype.getDrawData = function() {
-    var data = DrawData.getObject();
-    data.texture = this.texture;
-    data.filters = this.filters;
-    return data;
-};
-
-/**
- * prepare draw for a render
- **/
-// Sprite.prototype.prepareDraw = function(render, data) {
-//     var gl = render.context;
-//
-//     render.activateShader(render.textureShader);
-//
-//     gl.activeTexture(gl.TEXTURE0);
-//
-//     gl.bindTexture(gl.TEXTURE_2D, data.texture);
-// };
-
-/**
  * A Sample Rect Class
  * you can give it a color
  **/
@@ -3474,26 +3449,6 @@ Rect.prototype.getIndices = function() {
         2, 3, 0
     ];
 };
-
-/**
- * get draw data of this
- **/
-Rect.prototype.getDrawData = function() {
-    var data = DrawData.getObject();
-    data.color = this.color;
-    return data;
-};
-
-/**
- * prepare draw for a render
- **/
-// Rect.prototype.prepareDraw = function(render, data) {
-//     var gl = render.context;
-//
-//     render.activateShader(render.primitiveShader);
-//
-//     render.primitiveShader.fillColor(gl, data.color);
-// };
 
 var textCanvas = document.createElement("canvas");
 
@@ -3637,23 +3592,6 @@ Text.prototype.getIndices = function() {
         0, 1, 2,
         2, 3, 0
     ];
-};
-
-/**
- * get draw data of this
- **/
-Text.prototype.getDrawData = function() {
-    var data = DrawData.getObject();
-
-    // if dirty, update texture
-    if(this.dirty) {
-        this.updateTexture();
-        this.dirty = false;
-    }
-
-    data.texture = this.texture;
-    data.filters = this.filters;
-    return data;
 };
 
 /**
