@@ -300,9 +300,9 @@ Matrix.prototype.invert = function() {
 }
 
 /**
- * transform matrix
+ * set transform
  **/
-Matrix.prototype.transform = function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
+Matrix.prototype.setTransform = function(x, y, scaleX, scaleY, rotation, anchorX, anchorY) {
     var cr = 1;
     var sr = 0;
     if (rotation % 360) {
@@ -311,36 +311,17 @@ Matrix.prototype.transform = function(x, y, scaleX, scaleY, rotation, anchorX, a
         sr = Math.sin(r);
     }
 
-    this._append(cr * scaleX, sr * scaleX, -sr * scaleY, cr * scaleY, x, y);
+    this.a = cr * scaleX;
+    this.b = sr * scaleX;
+    this.c = -sr * scaleY;
+    this.d = cr * scaleY;
+    this.tx = x;
+    this.ty = y;
 
     if (anchorX || anchorY) {
         // prepend the anchor offset:
         this.tx -= anchorX * this.a + anchorY * this.c;
         this.ty -= anchorX * this.b + anchorY * this.d;
-    }
-}
-
-Matrix.prototype._append = function(a, b, c, d, tx, ty) {
-    var ta = this.a;
-    var tb = this.b;
-    var tc = this.c;
-    var td = this.d;
-    var ttx = this.tx;
-    var tty = this.ty;
-    if(ta != 1 || tb != 0 || tc != 0 || td != 1) {
-        this.a = ta * a + tc * b;
-        this.b = tb * a + td * b;
-        this.c = ta * c + tc * d;
-        this.d = tb * c + td * d;
-        this.tx = ta * tx + tc * ty + ttx;
-        this.ty = tb * tx + td * ty + tty;
-    } else {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
-        this.tx = tx + ttx;
-        this.ty = ty + tty;
     }
 }
 
@@ -3153,11 +3134,10 @@ DisplayObject.prototype.getDrawData = function(render) {
  * get the transform matrix
  **/
 DisplayObject.prototype.getTransformMatrix = function() {
-
-    this.transform.identify();
-
     // one call is better
-    this.transform.transform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX * this.width, this.anchorY * this.height);
+    this.transform.setTransform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX * this.width, this.anchorY * this.height);
+
+    // this.transform.identify();
     // this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
     // this.transform.scale(this.scaleX, this.scaleY);
     // this.transform.rotate(this.rotation);
