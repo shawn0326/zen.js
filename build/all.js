@@ -480,6 +480,8 @@ Texture.prototype.uploadImage = function(image, bind) {
 /**
  * uploadCompressedData
  * Uploads compressed texture data to the GPU.
+ * pixelStorei is not work for compressedTexImage2D!!!
+ * so we need a flipY and premultipliedAlpha data!!!
  */
 Texture.prototype.uploadCompressedData = function(data, width, height, levels, internalFormat, bind) {
     var gl = this.gl;
