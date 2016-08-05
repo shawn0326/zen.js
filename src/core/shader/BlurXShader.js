@@ -7,10 +7,9 @@ var BlurXShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        'const vec2 center = vec2(1.0, 1.0);',
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");

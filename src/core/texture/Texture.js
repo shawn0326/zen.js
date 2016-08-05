@@ -24,7 +24,7 @@ var Texture = function(gl) {
     gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
 
     // this can set just as a global props?
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
     // set repeat
