@@ -21,14 +21,17 @@ var Shader = function(gl, vshader, fshader) {
  * activate this shader
  * TODO create a VAO object
  **/
-Shader.prototype.activate = function(gl, width, height) {
+Shader.prototype.activate = function(gl) {
     gl.useProgram(this.program);
+}
 
+/**
+ * set projection
+ **/
+Shader.prototype.setProjection = function(gl, projectionMat) {
     // set projection
-    // we should let every shader has a u_Projection uniform
     var u_Projection = gl.getUniformLocation(this.program, "u_Projection");
-    // TODO how to set a right matrix? origin point should be top left conner, but now bottom left
-    gl.uniform2f(u_Projection, width / 2, height / 2);
+    gl.uniformMatrix3fv(u_Projection, false, projectionMat);
 }
 
 /**

@@ -72,7 +72,8 @@ Render.prototype.activateShader = function(shader) {
     }
 
     var gl = this.gl;
-    shader.activate(gl, this.width, this.height);
+    shader.activate(gl);
+    shader.setProjection(gl, this.currentRenderTarget.projectionMatrix);
     this.currentShader = shader;
 }
 
@@ -82,6 +83,11 @@ Render.prototype.activateShader = function(shader) {
  Render.prototype.activateRenderTarget = function(renderTarget) {
      if(this.currentRenderTarget == renderTarget) {
          return;
+     }
+
+     if(this.currentShader) {
+         var gl = this.gl;
+         this.currentShader.setProjection(gl, renderTarget.projectionMatrix)
      }
 
      renderTarget.activate();

@@ -211,7 +211,6 @@ TouchHandler.prototype.updateScale = function(scaleX, scaleY) {
 TouchHandler.prototype.getLocation = function(event, point) {
     var box = this.canvas.getBoundingClientRect();
     point.x = (event.pageX - box.left) / this.scaleX;
-    point.y = (box.height - (event.pageY - box.top)) / this.scaleY;
+    point.y = (event.pageY - box.top) / this.scaleY;
     return point;
 }
-

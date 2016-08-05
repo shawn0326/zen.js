@@ -15,6 +15,9 @@ var RenderTarget = function(gl, width, height, root) {
     // clear color
     this.clearColor = [0.0, 0.0, 0.0, 0.0];
 
+    // 3x3 projection matrix
+    this.projectionMatrix = new Float32Array(3 * 3);
+
     if(!this.root) {
 
         this.frameBuffer = gl.createFramebuffer();
@@ -96,7 +99,31 @@ RenderTarget.prototype.attachStencilBuffer = function() {
 RenderTarget.prototype.activate = function() {
     var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+
+    this.calculateProjection();
+    gl.viewport(0, 0, this.width, this.height);
 };
+
+/**
+ * Updates the projection matrix
+ */
+RenderTarget.prototype.calculateProjection = function() {
+    var pm = this.projectionMatrix;
+
+    if(!this.root) {
+        pm[0] = 1 / this.width * 2;
+        pm[4] = 1 / this.height * 2;
+
+        pm[6] = -1;
+        pm[7] = -1;
+    } else {
+        pm[0] = 1 / this.width * 2;
+        pm[4] = -1 / this.height * 2;
+
+        pm[6] = -1;
+        pm[7] = 1;
+    }
+}
 
 /**
  * destroy

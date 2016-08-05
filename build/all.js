@@ -438,7 +438,7 @@ var Texture = function(gl) {
     gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
 
     // this can set just as a global props?
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
     // set repeat
@@ -886,7 +886,8 @@ Render.prototype.activateShader = function(shader) {
     }
 
     var gl = this.gl;
-    shader.activate(gl, this.width, this.height);
+    shader.activate(gl);
+    shader.setProjection(gl, this.currentRenderTarget.projectionMatrix);
     this.currentShader = shader;
 }
 
@@ -896,6 +897,11 @@ Render.prototype.activateShader = function(shader) {
  Render.prototype.activateRenderTarget = function(renderTarget) {
      if(this.currentRenderTarget == renderTarget) {
          return;
+     }
+
+     if(this.currentShader) {
+         var gl = this.gl;
+         this.currentShader.setProjection(gl, renderTarget.projectionMatrix)
      }
 
      renderTarget.activate();
@@ -1304,6 +1310,9 @@ var RenderTarget = function(gl, width, height, root) {
     // clear color
     this.clearColor = [0.0, 0.0, 0.0, 0.0];
 
+    // 3x3 projection matrix
+    this.projectionMatrix = new Float32Array(3 * 3);
+
     if(!this.root) {
 
         this.frameBuffer = gl.createFramebuffer();
@@ -1385,7 +1394,31 @@ RenderTarget.prototype.attachStencilBuffer = function() {
 RenderTarget.prototype.activate = function() {
     var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+
+    this.calculateProjection();
+    gl.viewport(0, 0, this.width, this.height);
 };
+
+/**
+ * Updates the projection matrix
+ */
+RenderTarget.prototype.calculateProjection = function() {
+    var pm = this.projectionMatrix;
+
+    if(!this.root) {
+        pm[0] = 1 / this.width * 2;
+        pm[4] = 1 / this.height * 2;
+
+        pm[6] = -1;
+        pm[7] = -1;
+    } else {
+        pm[0] = 1 / this.width * 2;
+        pm[4] = -1 / this.height * 2;
+
+        pm[6] = -1;
+        pm[7] = 1;
+    }
+}
 
 /**
  * destroy
@@ -1728,14 +1761,17 @@ var Shader = function(gl, vshader, fshader) {
  * activate this shader
  * TODO create a VAO object
  **/
-Shader.prototype.activate = function(gl, width, height) {
+Shader.prototype.activate = function(gl) {
     gl.useProgram(this.program);
+}
 
+/**
+ * set projection
+ **/
+Shader.prototype.setProjection = function(gl, projectionMat) {
     // set projection
-    // we should let every shader has a u_Projection uniform
     var u_Projection = gl.getUniformLocation(this.program, "u_Projection");
-    // TODO how to set a right matrix? origin point should be top left conner, but now bottom left
-    gl.uniform2f(u_Projection, width / 2, height / 2);
+    gl.uniformMatrix3fv(u_Projection, false, projectionMat);
 }
 
 /**
@@ -1791,10 +1827,9 @@ var PrimitiveShader = function(gl) {
 
     var vshaderSource = [
         'attribute vec2 a_Position;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
         '}'
     ].join("\n");
 
@@ -1851,10 +1886,9 @@ var TextureShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -1905,10 +1939,9 @@ var ColorTransformShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2009,10 +2042,9 @@ var GlowShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2161,10 +2193,9 @@ var OutlineShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2272,10 +2303,9 @@ var AsciiShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2382,10 +2412,9 @@ var PixelateShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2464,10 +2493,9 @@ var BlurXShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        'const vec2 center = vec2(1.0, 1.0);',
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2550,10 +2578,9 @@ var BlurYShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -2641,10 +2668,9 @@ var BlurShader = function(gl) {
         'attribute vec2 a_Position;',
         'attribute vec2 a_TexCoord;',
         'varying vec2 v_TexCoord;',
-        'uniform vec2 u_Projection;',
-        "const vec2 center = vec2(1.0, 1.0);",
+        'uniform mat3 u_Projection;',
         'void main() {',
-            'gl_Position = vec4(a_Position / u_Projection - center, 0.0, 1.0);',
+            'gl_Position = vec4((u_Projection * vec3(a_Position, 1.0)).xy, 0.0, 1.0);',
             'v_TexCoord = a_TexCoord;',
         '}'
     ].join("\n");
@@ -4093,10 +4119,9 @@ TouchHandler.prototype.updateScale = function(scaleX, scaleY) {
 TouchHandler.prototype.getLocation = function(event, point) {
     var box = this.canvas.getBoundingClientRect();
     point.x = (event.pageX - box.left) / this.scaleX;
-    point.y = (box.height - (event.pageY - box.top)) / this.scaleY;
+    point.y = (event.pageY - box.top) / this.scaleY;
     return point;
 }
-
 
 /**
  * ScreenAdapter Class
