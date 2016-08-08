@@ -4,7 +4,8 @@ var render = new Render(document.getElementById("canvas"));
 // var texturePVR = Texture.fromPVR(render.context, "resources/shannon.pvr");
 // var texturePNG = Texture.fromSrc(render.context, "resources/shannon.png");
 
-var texturePVR = Texture.fromPVR(render.context, "resources/light.pvr");
+var texturePVRV2 = Texture.fromPVR(render.context, "resources/light_pvr_v2.pvr");
+var texturePVRV3 = Texture.fromPVR(render.context, "resources/light_pvr_v3.pvr");
 var texturePNG = Texture.fromSrc(render.context, "resources/light.png");
 
 var container = new DisplayObjectContainer();
@@ -35,10 +36,21 @@ container.height = 800;
     container.addChild(sprite);
 
     var sprite = new Sprite();
-    sprite.texture = texturePVR;
+    sprite.texture = texturePVRV2;
     sprite.anchorX = 0.5;
     sprite.anchorY = 0.5;
-    sprite.x = 480 / 2;
+    sprite.x = 480 / 2 - 100;
+    sprite.y = 800 / 2 - 100;
+    sprite.width = 512;
+    sprite.height = 512;
+
+    container.addChild(sprite);
+
+    var sprite = new Sprite();
+    sprite.texture = texturePVRV3;
+    sprite.anchorX = 0.5;
+    sprite.anchorY = 0.5;
+    sprite.x = 480 / 2 + 100;
     sprite.y = 800 / 2 - 100;
     sprite.width = 512;
     sprite.height = 512;
