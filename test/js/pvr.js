@@ -4,8 +4,8 @@ var render = new Render(document.getElementById("canvas"));
 // var texturePVR = Texture.fromPVR(render.context, "resources/shannon.pvr");
 // var texturePNG = Texture.fromSrc(render.context, "resources/shannon.png");
 
-var texturePVRV2 = Texture.fromPVR(render.context, "resources/light_pvr_v2.pvr");
-var texturePVRV3 = Texture.fromPVR(render.context, "resources/light_pvr_v3.pvr");
+var texturePVRV2 = Texture.fromSrc(render.context, "resources/light_pvr_v2.pvr");
+var texturePVRV3 = Texture.fromSrc(render.context, "resources/light_pvr_v3.pvr");
 var texturePNG = Texture.fromSrc(render.context, "resources/light.png");
 
 var container = new DisplayObjectContainer();

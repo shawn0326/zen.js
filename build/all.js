@@ -697,6 +697,18 @@ Texture.fromImage = function(gl, image) {
  * texture maybe not init util image is loaded
  */
 Texture.fromSrc = function(gl, src) {
+    if(src.indexOf(".pvr") != -1) {
+        return Texture.fromPVRSrc(gl, src);
+    }
+
+    return Texture.fromImageSrc(gl, src);
+}
+
+/**
+ * get texture from jpg|png|jpeg src
+ * texture maybe not init util image is loaded
+ */
+Texture.fromImageSrc = function(gl, src) {
     var texture = new Texture(gl);
 
     var image = new Image();
@@ -709,10 +721,10 @@ Texture.fromSrc = function(gl, src) {
 }
 
 /**
- * get texture from pvr
+ * get texture from pvr src
  * texture maybe not init util image is loaded
  */
-Texture.fromPVR = function(gl, src) {
+Texture.fromPVRSrc = function(gl, src) {
     var texture = new Texture(gl);
 
     // Load the file via XHR.
