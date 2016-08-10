@@ -9,7 +9,7 @@ var watch = require('gulp-watch');
 var baseDir = "src/";
 
 // name of all in one file
-var outputName = "all";
+var outputName = "zen";
 
 // src of files
 var filesSrc = [
