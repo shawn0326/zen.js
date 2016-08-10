@@ -22,6 +22,19 @@ var Util = {
         }
         var ua = navigator.userAgent.toLowerCase();
         return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
+    },
+
+    /**
+     * webgl get extension
+     */
+    getExtension: function(gl, name) {
+        var vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
+        var ext = null;
+        for (var i in vendorPrefixes) {
+            ext = gl.getExtension(vendorPrefixes[i] + name);
+            if (ext) { break; }
+        }
+        return ext;
     }
 
 }

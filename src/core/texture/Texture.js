@@ -6,17 +6,6 @@ function isPowerOfTwo(n) {
     return (n & (n - 1)) === 0;
 }
 
-// webgl get extension
-function getExtension(gl, name) {
-    var vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
-    var ext = null;
-    for (var i in vendorPrefixes) {
-        ext = gl.getExtension(vendorPrefixes[i] + name);
-        if (ext) { break; }
-    }
-    return ext;
-}
-
 /**
  * Texture Class
  * webgl texture
@@ -84,7 +73,13 @@ Texture.prototype.uploadCompressedData = function(data, width, height, levels, i
     var gl = this.gl;
 
     if(!Texture.pvrtcExt) {
-        Texture.pvrtcExt = gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc");
+        var ext = Util.getExtension(gl, "WEBGL_compressed_texture_pvrtc");
+        if(ext) {
+            Texture.pvrtcExt = ext;
+        } else {
+            console.log("WEBGL_compressed_texture_pvrtc is not supported!");
+            return;
+        }
     }
 
     if(bind) {
