@@ -1,37 +1,37 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/bunny.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/bunny.png");
 
 // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
 // create some sprites
 var sprites = [];
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
-var sprite = new Sprite();
+var sprite = new zen.Sprite();
 sprite.texture = texture;
 sprite.x = 100;
 sprite.y = 100;
 sprite.width = 100;
 sprite.height = 100;
-sprite.mask = new Rectangle(0, 0, 50, 50);
+sprite.mask = new zen.Rectangle(0, 0, 50, 50);
 container.addChild(sprite);
 
-var sprite = new Sprite();
+var sprite = new zen.Sprite();
 sprite.texture = texture;
 sprite.x = 50;
 sprite.y = 50;
 sprite.width = 100;
 sprite.height = 100;
-sprite.mask = new Rectangle(0, 0, 50, 50);
+sprite.mask = new zen.Rectangle(0, 0, 50, 50);
 container.addChild(sprite);
 
 
 // TODO unknow bug?????
-var mask = new Rectangle(0, 0, 150, 150);
+var mask = new zen.Rectangle(0, 0, 150, 150);
 
 // container.mask = mask;
 
@@ -56,7 +56,7 @@ var mask = new Rectangle(0, 0, 150, 150);
 // console.log("render object number:", num)
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 // frame render

@@ -1,9 +1,9 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
 // var texture = Texture.fromSrc(render.context, "resources/bunny.png");
 
-var rect = new Rect();
+var rect = new zen.Rect();
 rect.width = render.width;
 rect.height = render.height;
 rect.color = 0xffffff;
@@ -11,7 +11,7 @@ rect.color = 0xffffff;
 
 // create some sprites
 
-var sprite = new Sprite();
+var sprite = new zen.Sprite();
 // sprite.texture = texture;
 // sprite.color = 0x475846;
 sprite.x = 0;
@@ -23,10 +23,10 @@ sprite.height = 122;
 // sprites.push(sprite);
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
-var _sprite = new Sprite();
+var _sprite = new zen.Sprite();
 _sprite.width = 2;
 _sprite.height = 122;
 _sprite.x = 100;
@@ -38,11 +38,11 @@ _sprite.anchorX = 0.5;
 var image = new Image();
 image.src = "resources/1.png";
 image.onload = function() {
-    var texture = Texture.fromImage(render.context, image);
+    var texture = zen.Texture.fromImage(render.context, image);
 
     sprite.texture = texture;
 
-    var renderTarget = new RenderTarget(render.context, 2, 122);
+    var renderTarget = new zen.RenderTarget(render.context, 2, 122);
 
     render.activateRenderTarget(renderTarget);
 

@@ -1,19 +1,19 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
 // var texturePVR = Texture.fromPVR(render.context, "resources/shannon.pvr");
 // var texturePNG = Texture.fromSrc(render.context, "resources/shannon.png");
 
-var texturePVRV2 = Texture.fromSrc(render.context, "resources/light_pvr_v2.pvr");
-var texturePVRV3 = Texture.fromSrc(render.context, "resources/light_pvr_v3.pvr");
-var texturePNG = Texture.fromSrc(render.context, "resources/light.png");
+var texturePVRV2 = zen.Texture.fromSrc(render.context, "resources/light_pvr_v2.pvr");
+var texturePVRV3 = zen.Texture.fromSrc(render.context, "resources/light_pvr_v3.pvr");
+var texturePNG = zen.Texture.fromSrc(render.context, "resources/light.png");
 
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
 // for(var i = 0; i < 1; i++) {
-    var sprite = new Rect();
+    var sprite = new zen.Rect();
     sprite.color = 0xff0000;
     sprite.anchorX = 0.5;
     sprite.anchorY = 0.5;
@@ -24,7 +24,7 @@ container.height = 800;
 
     container.addChild(sprite);
 
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texturePNG;
     sprite.anchorX = 0.5;
     sprite.anchorY = 0.5;
@@ -35,7 +35,7 @@ container.height = 800;
 
     container.addChild(sprite);
 
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texturePVRV2;
     sprite.anchorX = 0.5;
     sprite.anchorY = 0.5;
@@ -46,7 +46,7 @@ container.height = 800;
 
     container.addChild(sprite);
 
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texturePVRV3;
     sprite.anchorX = 0.5;
     sprite.anchorY = 0.5;
@@ -62,7 +62,7 @@ container.height = 800;
 
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 // frame render

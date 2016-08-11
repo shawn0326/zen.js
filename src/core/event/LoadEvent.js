@@ -1,40 +1,45 @@
-/**
- * LoadEvent Class
- **/
-var LoadEvent = function() {
-    LoadEvent.superClass.constructor.call(this);
+(function() {
 
-    this.loadedCount = 0;
+    /**
+     * LoadEvent Class
+     **/
+    var LoadEvent = function() {
+        LoadEvent.superClass.constructor.call(this);
 
-    this.totalCount = 0;
-}
+        this.loadedCount = 0;
 
-// inherit
-Util.inherit(LoadEvent, Event);
+        this.totalCount = 0;
+    }
 
-/**
- * create and dispatch event
- **/
-LoadEvent.dispatchEvent = function(target, type, loadedCount, totalCount) {
-    var event = new LoadEvent();
-    event.type = type;
-    event.target = target;
-    event.loadedCount = loadedCount;
-    event.totalCount = totalCount;
-    target.dispatchEvent(event);
-}
+    // inherit
+    zen.inherit(LoadEvent, zen.Event);
 
-/**
- * load begin event
- **/
-LoadEvent.LOAD_BEGIN = "load_begin";
+    /**
+     * create and dispatch event
+     **/
+    LoadEvent.dispatchEvent = function(target, type, loadedCount, totalCount) {
+        var event = new LoadEvent();
+        event.type = type;
+        event.target = target;
+        event.loadedCount = loadedCount;
+        event.totalCount = totalCount;
+        target.dispatchEvent(event);
+    }
 
-/**
- * load processing event
- **/
-LoadEvent.LOAD_PROCESSING = "load_processing";
+    /**
+     * load begin event
+     **/
+    LoadEvent.LOAD_BEGIN = "load_begin";
 
-/**
- * load finish event
- **/
-LoadEvent.LOAD_FINISH = "load_finish";
+    /**
+     * load processing event
+     **/
+    LoadEvent.LOAD_PROCESSING = "load_processing";
+
+    /**
+     * load finish event
+     **/
+    LoadEvent.LOAD_FINISH = "load_finish";
+
+    zen.LoadEvent = LoadEvent;
+})();

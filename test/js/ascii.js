@@ -1,20 +1,20 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/hi.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/hi.png");
 
 // create some sprites
 var sprites = [];
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
-var asciiFilter = new AsciiFilter(render.context);
+var asciiFilter = new zen.AsciiFilter(render.context);
 asciiFilter.pixelSize = 12;
 
 var num = 1;
 for(var i = 0; i < num; i++) {
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texture;
     // sprite.color = 0x475846;
     sprite.filters = [asciiFilter];
@@ -32,7 +32,7 @@ for(var i = 0; i < num; i++) {
 console.log("render object number:", num)
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 var colorValue = 0;

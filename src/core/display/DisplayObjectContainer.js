@@ -1,56 +1,63 @@
-/**
- * DisplayObject Class
- * base class of all display objects
- **/
-var DisplayObjectContainer = function() {
+(function() {
 
-    DisplayObjectContainer.superClass.constructor.call(this);
+    var DISPLAY_TYPE = zen.DISPLAY_TYPE;
 
-    this.type = DISPLAY_TYPE.CONTAINER;
+    /**
+     * DisplayObject Class
+     * base class of all display objects
+     **/
+    var DisplayObjectContainer = function() {
 
-    this.children = [];
+        DisplayObjectContainer.superClass.constructor.call(this);
 
-}
+        this.type = DISPLAY_TYPE.CONTAINER;
 
-// inherit
-Util.inherit(DisplayObjectContainer, DisplayObject);
+        this.children = [];
 
-/**
- * add child
- **/
-DisplayObjectContainer.prototype.addChild = function(displayObject) {
-    this.children.push(displayObject);
-    displayObject.parent = this;
-}
-
-/**
- * remove child
- **/
-DisplayObjectContainer.prototype.removeChild = function(displayObject) {
-    for(var i = 0; i < this.children.length;) {
-        var child = this.children[i];
-        if(child == displayObject) {
-            this.children.splice(i, 1);
-            child.parent = null;
-            break;
-        }
-        i++;
     }
-}
 
-/**
- * hit test(rewrite)
- **/
-DisplayObjectContainer.prototype.hitTest = function(x, y) {
-    var target = null;
+    // inherit
+    zen.inherit(DisplayObjectContainer, zen.DisplayObject);
 
-    for(var i = this.children.length - 1; i >= 0; i--) {
-        var child = this.children[i];
-        target = child.hitTest(x, y);
-        if(target) {
-            break;
+    /**
+     * add child
+     **/
+    DisplayObjectContainer.prototype.addChild = function(displayObject) {
+        this.children.push(displayObject);
+        displayObject.parent = this;
+    }
+
+    /**
+     * remove child
+     **/
+    DisplayObjectContainer.prototype.removeChild = function(displayObject) {
+        for(var i = 0; i < this.children.length;) {
+            var child = this.children[i];
+            if(child == displayObject) {
+                this.children.splice(i, 1);
+                child.parent = null;
+                break;
+            }
+            i++;
         }
     }
 
-    return target || DisplayObjectContainer.superClass.hitTest.call(this);
-}
+    /**
+     * hit test(rewrite)
+     **/
+    DisplayObjectContainer.prototype.hitTest = function(x, y) {
+        var target = null;
+
+        for(var i = this.children.length - 1; i >= 0; i--) {
+            var child = this.children[i];
+            target = child.hitTest(x, y);
+            if(target) {
+                break;
+            }
+        }
+
+        return target || DisplayObjectContainer.superClass.hitTest.call(this);
+    }
+
+    zen.DisplayObjectContainer = DisplayObjectContainer;
+})();

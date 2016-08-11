@@ -1,70 +1,82 @@
-/*
- * render command
- */
-var RENDER_CMD = {
+(function() {
 
-    TEXTURE: 0,
+    /*
+     * render command
+     */
+    var RENDER_CMD = {
 
-    RECT: 1,
+        TEXTURE: 0,
 
-    BLEND: 2,
+        RECT: 1,
 
-    FILTERS_PUSH: 3,
+        BLEND: 2,
 
-    FILTERS_POP: 4,
+        FILTERS_PUSH: 3,
 
-    MASK_PUSH: 5,
+        FILTERS_POP: 4,
 
-    MASK_POP: 6
+        MASK_PUSH: 5,
 
-}
+        MASK_POP: 6
 
-/*
- * display object type
- */
-var DISPLAY_TYPE = {
+    }
 
-    CONTAINER: 0,
+    zen.RENDER_CMD = RENDER_CMD;
 
-    RECT: 1,
+    /*
+     * display object type
+     */
+    var DISPLAY_TYPE = {
 
-    SPRITE: 2,
+        CONTAINER: 0,
 
-    TEXT: 3
-}
+        RECT: 1,
 
-/*
- * blend mode
- */
-var BLEND_MODE = {
+        SPRITE: 2,
 
-    SOURCE_OVER: ["ONE", "ONE_MINUS_SRC_ALPHA"],
+        TEXT: 3
+    }
 
-    LIGHTER: ["SRC_ALPHA", "ONE"],
+    zen.DISPLAY_TYPE = DISPLAY_TYPE;
 
-    DESTINATION_OUT: ["ZERO", "ONE_MINUS_SRC_ALPHA"],
+    /*
+     * blend mode
+     */
+    var BLEND_MODE = {
 
-    DESTINATION_IN: ["ZERO", "SRC_ALPHA"],
+        SOURCE_OVER: ["ONE", "ONE_MINUS_SRC_ALPHA"],
 
-    ADD: ["ONE", "DST_ALPHA"],
+        LIGHTER: ["SRC_ALPHA", "ONE"],
 
-    MULTIPLY: ["DST_COLOR", "ONE_MINUS_SRC_ALPHA"],
+        DESTINATION_OUT: ["ZERO", "ONE_MINUS_SRC_ALPHA"],
 
-    SCREEN: ["ONE", "ONE_MINUS_SRC_COLOR"]
-}
+        DESTINATION_IN: ["ZERO", "SRC_ALPHA"],
 
-/*
- * resolution policy
- */
-var RESOLUTION_POLICY = {
+        ADD: ["ONE", "DST_ALPHA"],
 
-    EXACT_FIT: 0,
+        MULTIPLY: ["DST_COLOR", "ONE_MINUS_SRC_ALPHA"],
 
-    SHOW_ALL: 1,
+        SCREEN: ["ONE", "ONE_MINUS_SRC_COLOR"]
+    }
 
-    NO_BORDER: 2,
+    zen.BLEND_MODE = BLEND_MODE;
 
-    FIXED_WIDTH: 3,
+    /*
+     * resolution policy
+     */
+    var RESOLUTION_POLICY = {
 
-    FIXED_HEIGHT: 4
-}
+        EXACT_FIT: 0,
+
+        SHOW_ALL: 1,
+
+        NO_BORDER: 2,
+
+        FIXED_WIDTH: 3,
+
+        FIXED_HEIGHT: 4
+    }
+
+    zen.RESOLUTION_POLICY = RESOLUTION_POLICY;
+
+})();

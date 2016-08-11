@@ -1,33 +1,44 @@
-var Util = {
+(function(win) {
+
+    /*
+     * zen
+     * @namespace
+     */
+    var zen = win.zen = win.zen || {
+        global: win
+    };
 
     /**
      * Class inherit
      */
+    var emptyConstructor = function() {};
 
-    emptyConstructor: function() {},
-
-    inherit: function(subClass, superClass) {
-        Util.emptyConstructor.prototype = superClass.prototype;
+    var inherit = function(subClass, superClass) {
+        emptyConstructor.prototype = superClass.prototype;
         subClass.superClass = superClass.prototype;
-        subClass.prototype = new Util.emptyConstructor;
+        subClass.prototype = new emptyConstructor;
         subClass.prototype.constructor = subClass;
-    },
+    }
+
+    zen.inherit = inherit;
 
     /**
      * is mobile
      */
-    isMobile: function() {
-        if (!window["navigator"]) {
+    var isMobile = function() {
+        if (!win["navigator"]) {
             return true;
         }
         var ua = navigator.userAgent.toLowerCase();
         return (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
-    },
+    }
+
+    zen.isMobile = isMobile;
 
     /**
      * webgl get extension
      */
-    getExtension: function(gl, name) {
+    var getExtension = function(gl, name) {
         var vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
         var ext = null;
         for (var i in vendorPrefixes) {
@@ -37,4 +48,6 @@ var Util = {
         return ext;
     }
 
-}
+    zen.getExtension = getExtension;
+
+})(window);

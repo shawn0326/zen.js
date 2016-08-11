@@ -1,14 +1,14 @@
-var loader = new Loader();
+var loader = new zen.Loader();
 
-loader.addEventListener(LoadEvent.LOAD_BEGIN, function(event) {
+loader.addEventListener(zen.LoadEvent.LOAD_BEGIN, function(event) {
     console.log("load start " + event.loadedCount + "/" + event.totalCount);
 }, this);
 
-loader.addEventListener(LoadEvent.LOAD_PROCESSING, function(event) {
+loader.addEventListener(zen.LoadEvent.LOAD_PROCESSING, function(event) {
     console.log("load processing " + event.loadedCount + "/" + event.totalCount);
 }, this);
 
-loader.addEventListener(LoadEvent.LOAD_FINISH, function(event) {
+loader.addEventListener(zen.LoadEvent.LOAD_FINISH, function(event) {
     console.log("load finish " + event.loadedCount + "/" + event.totalCount);
 
     var hi = loader.getRes("hi");

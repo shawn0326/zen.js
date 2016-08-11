@@ -1,22 +1,27 @@
-/**
- * Pixelate filter
- **/
-var PixelateFilter = function(gl) {
+(function() {
 
-    this.shader = new PixelateShader(gl);
+    /**
+     * Pixelate filter
+     **/
+    var PixelateFilter = function(gl) {
 
-    this.pixelSize = 10;
+        this.shader = new zen.PixelateShader(gl);
 
-}
+        this.pixelSize = 10;
 
-Util.inherit(PixelateFilter, AbstractFilter);
+    }
 
-PixelateFilter.prototype.applyFilter = function(render, input, output, offset) {
-    render.activateShader(this.shader);
-    this.shader.setPixelSize(render.gl, this.pixelSize);
-    this.shader.setTextureSize(render.gl, input.width, input.height);
+    zen.inherit(PixelateFilter, zen.AbstractFilter);
 
-    offset = render.applyFilter(this, input, output, offset);
+    PixelateFilter.prototype.applyFilter = function(render, input, output, offset) {
+        render.activateShader(this.shader);
+        this.shader.setPixelSize(render.gl, this.pixelSize);
+        this.shader.setTextureSize(render.gl, input.width, input.height);
 
-    return offset;
-}
+        offset = render.applyFilter(this, input, output, offset);
+
+        return offset;
+    }
+
+    zen.PixelateFilter = PixelateFilter;
+})();

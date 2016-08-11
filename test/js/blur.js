@@ -1,7 +1,7 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/bg.jpeg");
+var texture = zen.Texture.fromSrc(render.context, "resources/bg.jpeg");
 
 // create some sprites
 // var sprites = [];
@@ -13,20 +13,20 @@ var texture = Texture.fromSrc(render.context, "resources/bg.jpeg");
 // var scale = 0.9;
 // filter.grayScale(0.7);
 
-var blurXFilter = new BlurXFilter(render.context);
+var blurXFilter = new zen.BlurXFilter(render.context);
 blurXFilter.blurX = 7;
-var blurYFilter = new BlurYFilter(render.context);
+var blurYFilter = new zen.BlurYFilter(render.context);
 blurYFilter.blurY = 7;
-var blurFilter = new BlurFilter(render.context);
+var blurFilter = new zen.BlurFilter(render.context);
 blurFilter.blurX = 20;
 blurFilter.blurY = 20;
 
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
 for(var i = 0; i < 30; i++) {
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texture;
     sprite.anchorX = 0.5;
     sprite.anchorY = 0.5;
@@ -49,7 +49,7 @@ for(var i = 0; i < 30; i++) {
 
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 var colorValue = 0;

@@ -1,168 +1,175 @@
-var textCanvas = document.createElement("canvas");
+(function() {
 
-var textContext = textCanvas.getContext("2d");
+    var DISPLAY_TYPE = zen.DISPLAY_TYPE;
 
-/**
- * Text Class
- * sprite to show text
- **/
-var Text = function(gl) {
+    var textCanvas = document.createElement("canvas");
 
-    Text.superClass.constructor.call(this);
+    var textContext = textCanvas.getContext("2d");
 
-    this.type = DISPLAY_TYPE.TEXT;
+    /**
+     * Text Class
+     * sprite to show text
+     **/
+    var Text = function(gl) {
 
-    // we render text on a 2D context, and then
-    // store canvas to this texture
-    this.texture = new Texture(gl);
+        Text.superClass.constructor.call(this);
 
-    // text
-    this.$text = "";
+        this.type = DISPLAY_TYPE.TEXT;
 
-    // font color
-    this.$fontColor = 0xff0000;
+        // we render text on a 2D context, and then
+        // store canvas to this texture
+        this.texture = new zen.Texture(gl);
 
-    // font size
-    this.$fontSize = 24;
+        // text
+        this.$text = "";
 
-    // font family
-    this.$fontFamily = "Arial";
+        // font color
+        this.$fontColor = 0xff0000;
 
-    // dirty flag
-    this.dirty = true;
+        // font size
+        this.$fontSize = 24;
 
-    // TODO width and height is not used in this DisplayObject
+        // font family
+        this.$fontFamily = "Arial";
 
-}
+        // dirty flag
+        this.dirty = true;
 
-// inherit
-Util.inherit(Text, DisplayObject);
+        // TODO width and height is not used in this DisplayObject
 
-Object.defineProperties(Text.prototype, {
-
-    text:
-    {
-        get: function ()
-        {
-            return this.$text;
-        },
-        set: function(value)
-        {
-            this.$text = value;
-            this.dirty = true;
-        }
-    },
-
-    fontColor:
-    {
-        get: function ()
-        {
-            return this.$fontColor;
-        },
-        set: function(value)
-        {
-            this.$fontColor = value;
-            this.dirty = true;
-        }
-    },
-
-    fontSize:
-    {
-        get: function ()
-        {
-            return this.$fontSize;
-        },
-        set: function(value)
-        {
-            this.$fontSize = value;
-            this.dirty = true;
-        }
-    },
-
-    fontFamily:
-    {
-        get: function ()
-        {
-            return this.$fontFamily;
-        },
-        set: function(value)
-        {
-            this.$fontFamily = value;
-            this.dirty = true;
-        }
     }
 
-});
+    // inherit
+    zen.inherit(Text, zen.DisplayObject);
 
-/**
- * get coords data of this
- **/
-Text.prototype.getCoords = function() {
+    Object.defineProperties(Text.prototype, {
 
-    if(this.dirty) {
+        text:
+        {
+            get: function ()
+            {
+                return this.$text;
+            },
+            set: function(value)
+            {
+                this.$text = value;
+                this.dirty = true;
+            }
+        },
+
+        fontColor:
+        {
+            get: function ()
+            {
+                return this.$fontColor;
+            },
+            set: function(value)
+            {
+                this.$fontColor = value;
+                this.dirty = true;
+            }
+        },
+
+        fontSize:
+        {
+            get: function ()
+            {
+                return this.$fontSize;
+            },
+            set: function(value)
+            {
+                this.$fontSize = value;
+                this.dirty = true;
+            }
+        },
+
+        fontFamily:
+        {
+            get: function ()
+            {
+                return this.$fontFamily;
+            },
+            set: function(value)
+            {
+                this.$fontFamily = value;
+                this.dirty = true;
+            }
+        }
+
+    });
+
+    /**
+     * get coords data of this
+     **/
+    Text.prototype.getCoords = function() {
+
+        if(this.dirty) {
+            var canvas = textCanvas;
+            var context = textContext;
+            context.font = this.$fontSize + "px " + this.$fontFamily;
+            this.width = context.measureText(this.$text).width;
+            this.height = this.$fontSize * 1.4;
+        }
+
+        var coords = [
+            0             , 0              ,
+            0 + this.width, 0              ,
+            0 + this.width, 0 + this.height,
+            0             , 0 + this.height
+        ];
+
+        return coords;
+    }
+
+    /**
+     * get props data of this
+     * uv datas
+     **/
+    Text.prototype.getProps = function() {
+        var props = [
+            0    , 0    ,
+            0 + 1, 0    ,
+            0 + 1, 0 + 1,
+            0    , 0 + 1
+        ];
+
+        return props;
+    }
+
+    /**
+     * get indices data of this
+     **/
+    Text.prototype.getIndices = function() {
+        return [
+            0, 1, 2,
+            2, 3, 0
+        ];
+    };
+
+    /**
+     * update texture
+     */
+    Text.prototype.updateTexture = function() {
         var canvas = textCanvas;
         var context = textContext;
+
         context.font = this.$fontSize + "px " + this.$fontFamily;
-        this.width = context.measureText(this.$text).width;
-        this.height = this.$fontSize * 1.4;
+
+        // canvas can not be size 0
+        var width = context.measureText(this.$text).width || 1;
+        var height = this.$fontSize * 1.4 || 1;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        context.clearRect(0, 0, width, height);
+
+        context.font = this.$fontSize + "px " + this.$fontFamily;
+        context.fillStyle = "#" + this.$fontColor.toString(16);
+        context.fillText(this.$text, 0, this.$fontSize);
+
+        this.texture.uploadImage(canvas, true);
     }
 
-    var coords = [
-        0             , 0              ,
-        0 + this.width, 0              ,
-        0 + this.width, 0 + this.height,
-        0             , 0 + this.height
-    ];
-
-    return coords;
-}
-
-/**
- * get props data of this
- * uv datas
- **/
-Text.prototype.getProps = function() {
-    var props = [
-        0    , 0    ,
-        0 + 1, 0    ,
-        0 + 1, 0 + 1,
-        0    , 0 + 1
-    ];
-
-    return props;
-}
-
-/**
- * get indices data of this
- **/
-Text.prototype.getIndices = function() {
-    return [
-        0, 1, 2,
-        2, 3, 0
-    ];
-};
-
-/**
- * update texture
- */
-Text.prototype.updateTexture = function() {
-    var canvas = textCanvas;
-    var context = textContext;
-
-    context.font = this.$fontSize + "px " + this.$fontFamily;
-
-    // canvas can not be size 0
-    var width = context.measureText(this.$text).width || 1;
-    var height = this.$fontSize * 1.4 || 1;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    context.clearRect(0, 0, width, height);
-
-    context.font = this.$fontSize + "px " + this.$fontFamily;
-    context.fillStyle = "#" + this.$fontColor.toString(16);
-    context.fillText(this.$text, 0, this.$fontSize);
-
-    this.texture.uploadImage(canvas, true);
-}
+    zen.Text = Text;
+})();

@@ -14,8 +14,8 @@ var outputName = "zen";
 // src of files
 var filesSrc = [
     // core
-    "core/Const.js",
-    "core/Util.js",
+    "core/base.js",
+    "core/const.js",
     "core/math/Matrix.js",
     "core/math/Rectangle.js",
     "core/math/Vec2.js",

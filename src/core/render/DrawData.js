@@ -1,50 +1,54 @@
-/**
- * DrawData Class
- * describ a draw data
- **/
-var DrawData = function() {
+(function() {
+    /**
+     * DrawData Class
+     * describ a draw data
+     **/
+    var DrawData = function() {
 
-    this.cmd = null;
+        this.cmd = null;
 
-    this.texture = null;
+        this.texture = null;
 
-    this.color = 0x000000;
+        this.color = 0x000000;
 
-    this.transform = null;
+        this.transform = null;
 
-    this.count = 0;
+        this.count = 0;
 
-    this.blendMode = "";
+        this.blendMode = "";
 
-    this.filter = null;
+        this.filter = null;
 
-    this.mask = null;
+        this.mask = null;
 
-};
+    };
 
-// draw data object pool
-DrawData.pool = [];
+    // draw data object pool
+    DrawData.pool = [];
 
-// create some draw data
-for(var i = 0; i < 300; i++) {
-    DrawData.pool.push(new DrawData());
-}
+    // create some draw data
+    for(var i = 0; i < 300; i++) {
+        DrawData.pool.push(new DrawData());
+    }
 
-DrawData.getObject = function() {
-    return DrawData.pool.length > 0 ? DrawData.pool.pop() : new DrawData();
-};
+    DrawData.getObject = function() {
+        return DrawData.pool.length > 0 ? DrawData.pool.pop() : new DrawData();
+    };
 
-DrawData.returnObject = function(drawData) {
+    DrawData.returnObject = function(drawData) {
 
-    drawData.cmd = null;
-    drawData.texture = null;
-    drawData.color = 0x000000;
-    drawData.transform = null;
-    drawData.count = 0;
-    drawData.blendMode = "";
-    drawData.filter = null;
-    drawData.mask = null;
+        drawData.cmd = null;
+        drawData.texture = null;
+        drawData.color = 0x000000;
+        drawData.transform = null;
+        drawData.count = 0;
+        drawData.blendMode = "";
+        drawData.filter = null;
+        drawData.mask = null;
 
-    DrawData.pool.push(drawData);
+        DrawData.pool.push(drawData);
 
-};
+    };
+
+    zen.DrawData = DrawData;
+})();

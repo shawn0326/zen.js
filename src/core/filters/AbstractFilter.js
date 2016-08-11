@@ -1,22 +1,26 @@
-/**
- * abstract filter
- **/
-var AbstractFilter = function(gl) {
+(function() {
+    /**
+     * abstract filter
+     **/
+    var AbstractFilter = function(gl) {
 
-    //  a shader to render this filter
-    this.shader = null;
+        //  a shader to render this filter
+        this.shader = null;
 
-}
+    }
 
-// render apply this filter
-AbstractFilter.prototype.applyFilter = function(render, input, output, offset) {
+    // render apply this filter
+    AbstractFilter.prototype.applyFilter = function(render, input, output, offset) {
 
-    // use shader
+        // use shader
 
-    // apply filter
-    offset = render.applyFilter(this, input, output, offset);
+        // apply filter
+        offset = render.applyFilter(this, input, output, offset);
 
-    // return draw offset
-    return offset;
+        // return draw offset
+        return offset;
 
-}
+    }
+
+    zen.AbstractFilter = AbstractFilter;
+})();

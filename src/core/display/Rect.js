@@ -1,56 +1,63 @@
-/**
- * A Sample Rect Class
- * you can give it a color
- **/
-var Rect = function() {
+(function() {
 
-    Rect.superClass.constructor.call(this);
+    var DISPLAY_TYPE = zen.DISPLAY_TYPE;
 
-    this.type = DISPLAY_TYPE.RECT;
+    /**
+     * A Sample Rect Class
+     * you can give it a color
+     **/
+    var Rect = function() {
 
-    // color
-    this.color = 0x000000;
+        Rect.superClass.constructor.call(this);
 
-}
+        this.type = DISPLAY_TYPE.RECT;
 
-// inherit
-Util.inherit(Rect, DisplayObject);
+        // color
+        this.color = 0x000000;
 
-/**
- * get coords data of this
- **/
-Rect.prototype.getCoords = function() {
-    var coords = [
-        0             , 0              ,
-        0 + this.width, 0              ,
-        0 + this.width, 0 + this.height,
-        0             , 0 + this.height
-    ];
+    }
 
-    return coords;
-}
+    // inherit
+    zen.inherit(Rect, zen.DisplayObject);
 
-/**
- * get props data of this
- **/
-Rect.prototype.getProps = function() {
-    // no use
-    var props = [
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0
-    ];
+    /**
+     * get coords data of this
+     **/
+    Rect.prototype.getCoords = function() {
+        var coords = [
+            0             , 0              ,
+            0 + this.width, 0              ,
+            0 + this.width, 0 + this.height,
+            0             , 0 + this.height
+        ];
 
-    return props;
-}
+        return coords;
+    }
 
-/**
- * get indices data of this
- **/
-Rect.prototype.getIndices = function() {
-    return [
-        0, 1, 2,
-        2, 3, 0
-    ];
-};
+    /**
+     * get props data of this
+     **/
+    Rect.prototype.getProps = function() {
+        // no use
+        var props = [
+            0, 0,
+            0, 0,
+            0, 0,
+            0, 0
+        ];
+
+        return props;
+    }
+
+    /**
+     * get indices data of this
+     **/
+    Rect.prototype.getIndices = function() {
+        return [
+            0, 1, 2,
+            2, 3, 0
+        ];
+    };
+
+    zen.Rect = Rect;
+})();

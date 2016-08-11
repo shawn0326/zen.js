@@ -1,31 +1,31 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/actor_32x32.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/actor_32x32.png");
 
 // create some sprites
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 
 var frames = [
     // back
-    new Rectangle(32 * 0, 32 * 0, 32, 32),
-    new Rectangle(32 * 1, 32 * 0, 32, 32),
-    new Rectangle(32 * 2, 32 * 0, 32, 32),
+    new zen.Rectangle(32 * 0, 32 * 0, 32, 32),
+    new zen.Rectangle(32 * 1, 32 * 0, 32, 32),
+    new zen.Rectangle(32 * 2, 32 * 0, 32, 32),
 
     // right
-    new Rectangle(32 * 0, 32 * 1, 32, 32),
-    new Rectangle(32 * 1, 32 * 1, 32, 32),
-    new Rectangle(32 * 2, 32 * 1, 32, 32),
+    new zen.Rectangle(32 * 0, 32 * 1, 32, 32),
+    new zen.Rectangle(32 * 1, 32 * 1, 32, 32),
+    new zen.Rectangle(32 * 2, 32 * 1, 32, 32),
 
     // forward
-    new Rectangle(32 * 0, 32 * 3, 32, 32),
-    new Rectangle(32 * 1, 32 * 3, 32, 32),
-    new Rectangle(32 * 2, 32 * 3, 32, 32),
+    new zen.Rectangle(32 * 0, 32 * 3, 32, 32),
+    new zen.Rectangle(32 * 1, 32 * 3, 32, 32),
+    new zen.Rectangle(32 * 2, 32 * 3, 32, 32),
 
     // left
-    new Rectangle(32 * 0, 32 * 2, 32, 32),
-    new Rectangle(32 * 1, 32 * 2, 32, 32),
-    new Rectangle(32 * 2, 32 * 2, 32, 32)
+    new zen.Rectangle(32 * 0, 32 * 2, 32, 32),
+    new zen.Rectangle(32 * 1, 32 * 2, 32, 32),
+    new zen.Rectangle(32 * 2, 32 * 2, 32, 32)
 
 
 ];
@@ -36,7 +36,7 @@ var num = 300;
 var frameCount = 0;
 
 for(var i = 0; i < num; i++) {
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texture;
     // sprite.color = 0x475846;
     sprite.x = Math.random() * 480;
@@ -55,7 +55,7 @@ for(var i = 0; i < num; i++) {
 }
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 var speed = 10;

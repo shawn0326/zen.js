@@ -1,15 +1,15 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 
 // touch handler
-var touchHandler = new TouchHandler(render.view, container);
+var touchHandler = new zen.TouchHandler(render.view, container);
 touchHandler.addListeners();
 
-var texture = Texture.fromSrc(render.context, "resources/bunny.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/bunny.png");
 
-var sprite = new Sprite();
+var sprite = new zen.Sprite();
 sprite.texture = texture;
 sprite.x = 100;
 sprite.y = 300;
@@ -19,7 +19,7 @@ sprite.width = 100;
 sprite.height = 100;
 container.addChild(sprite);
 
-var sprite2 = new Sprite();
+var sprite2 = new zen.Sprite();
 sprite2.texture = texture;
 sprite2.x = 200;
 sprite2.y = 300;
@@ -52,19 +52,19 @@ var restoreSize = function(e) {
     sprite.scaleX = 1;
     sprite.scaleY = 1;
 }
-sprite.addEventListener(TouchEvent.TOUCH_BEGIN, biggerSize, this);
-sprite.addEventListener(TouchEvent.TOUCH_MOVE, listener, this);
-sprite.addEventListener(TouchEvent.TOUCH_END, restoreSize, this);
+sprite.addEventListener(zen.TouchEvent.TOUCH_BEGIN, biggerSize, this);
+sprite.addEventListener(zen.TouchEvent.TOUCH_MOVE, listener, this);
+sprite.addEventListener(zen.TouchEvent.TOUCH_END, restoreSize, this);
 // sprite.addEventListener(TouchEvent.TOUCH_RELEASE_OUTSIDE, listener, this);
 
 // sprite.addEventListener(TouchEvent.TOUCH_TAP, listener, this);
 
-sprite2.addEventListener(TouchEvent.TOUCH_MOVE, listener2, this);
+sprite2.addEventListener(zen.TouchEvent.TOUCH_MOVE, listener2, this);
 
-container.addEventListener(TouchEvent.TOUCH_TAP, listener3, this);
+container.addEventListener(zen.TouchEvent.TOUCH_TAP, listener3, this);
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 // frame render

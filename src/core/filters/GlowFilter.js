@@ -1,35 +1,40 @@
-/**
- * glow filter
- **/
-var GlowFilter = function(gl) {
+(function() {
 
-    this.shader = new GlowShader(gl);
+    /**
+     * glow filter
+     **/
+    var GlowFilter = function(gl) {
 
-    // sample range, distance will effect glow size
-    this.distance = 15;
+        this.shader = new zen.GlowShader(gl);
 
-    // glow color
-    this.color = 0xff0000;
+        // sample range, distance will effect glow size
+        this.distance = 15;
 
-    // outer glow strength
-    this.outerStrength = 1;
+        // glow color
+        this.color = 0xff0000;
 
-    // inner glow strength
-    this.innerStrength = 1;
+        // outer glow strength
+        this.outerStrength = 1;
 
-}
+        // inner glow strength
+        this.innerStrength = 1;
 
-Util.inherit(GlowFilter, AbstractFilter);
+    }
 
-GlowFilter.prototype.applyFilter = function(render, input, output, offset) {
-    render.activateShader(this.shader);
-    this.shader.setDistance(render.gl, this.distance);
-    this.shader.setColor(render.gl, this.color);
-    this.shader.setOuterStrength(render.gl, this.outerStrength);
-    this.shader.setInnerStrength(render.gl, this.innerStrength);
-    this.shader.setViewSize(render.gl, input.width, input.height);
+    zen.inherit(GlowFilter, zen.AbstractFilter);
 
-    offset = render.applyFilter(this, input, output, offset);
+    GlowFilter.prototype.applyFilter = function(render, input, output, offset) {
+        render.activateShader(this.shader);
+        this.shader.setDistance(render.gl, this.distance);
+        this.shader.setColor(render.gl, this.color);
+        this.shader.setOuterStrength(render.gl, this.outerStrength);
+        this.shader.setInnerStrength(render.gl, this.innerStrength);
+        this.shader.setViewSize(render.gl, input.width, input.height);
 
-    return offset;
-}
+        offset = render.applyFilter(this, input, output, offset);
+
+        return offset;
+    }
+
+    zen.GlowFilter = GlowFilter;
+})();

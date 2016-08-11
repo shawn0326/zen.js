@@ -1,30 +1,35 @@
-/**
- * blur filter
- **/
-var BlurFilter = function(gl) {
+(function() {
 
-    this.shader = new BlurShader(gl);
+    /**
+     * blur filter
+     **/
+    var BlurFilter = function(gl) {
 
-    this.blurX = 2;
+        this.shader = new zen.BlurShader(gl);
 
-    this.blurY = 2;
+        this.blurX = 2;
 
-    // TODO use help filters
-    // if one of blurX and blurY equals zero, use blurXFilter or blurYFilter
-    // if texture size bigger than 250, use two pass filter, because blur shader will run slow
-    // this.blurXFilter = new BlurXFilter();
-    // this.blurYFilter = new BlurYFilter();
+        this.blurY = 2;
 
-}
+        // TODO use help filters
+        // if one of blurX and blurY equals zero, use blurXFilter or blurYFilter
+        // if texture size bigger than 250, use two pass filter, because blur shader will run slow
+        // this.blurXFilter = new BlurXFilter();
+        // this.blurYFilter = new BlurYFilter();
 
-Util.inherit(BlurFilter, AbstractFilter);
+    }
 
-BlurFilter.prototype.applyFilter = function(render, input, output, offset) {
-    render.activateShader(this.shader);
-    this.shader.setBlur(render.gl, this.blurX, this.blurY);
-    this.shader.setTextureSize(render.gl, input.width, input.height);
+    zen.inherit(BlurFilter, zen.AbstractFilter);
 
-    offset = render.applyFilter(this, input, output, offset);
+    BlurFilter.prototype.applyFilter = function(render, input, output, offset) {
+        render.activateShader(this.shader);
+        this.shader.setBlur(render.gl, this.blurX, this.blurY);
+        this.shader.setTextureSize(render.gl, input.width, input.height);
 
-    return offset;
-}
+        offset = render.applyFilter(this, input, output, offset);
+
+        return offset;
+    }
+
+    zen.BlurFilter = BlurFilter;
+})();

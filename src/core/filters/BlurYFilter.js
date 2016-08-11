@@ -1,22 +1,27 @@
-/**
- * blurY filter
- **/
-var BlurYFilter = function(gl) {
+(function() {
 
-    this.shader = new BlurYShader(gl);
+    /**
+     * blurY filter
+     **/
+    var BlurYFilter = function(gl) {
 
-    this.blurY = 1;
+        this.shader = new zen.BlurYShader(gl);
 
-}
+        this.blurY = 1;
 
-Util.inherit(BlurYFilter, AbstractFilter);
+    }
 
-BlurYFilter.prototype.applyFilter = function(render, input, output, offset) {
-    render.activateShader(this.shader);
-    this.shader.setBlurY(render.gl, this.blurY);
-    this.shader.setTextureSize(render.gl, input.width, input.height);
+    zen.inherit(BlurYFilter, zen.AbstractFilter);
 
-    offset = render.applyFilter(this, input, output, offset);
+    BlurYFilter.prototype.applyFilter = function(render, input, output, offset) {
+        render.activateShader(this.shader);
+        this.shader.setBlurY(render.gl, this.blurY);
+        this.shader.setTextureSize(render.gl, input.width, input.height);
 
-    return offset;
-}
+        offset = render.applyFilter(this, input, output, offset);
+
+        return offset;
+    }
+
+    zen.BlurYFilter = BlurYFilter;
+})();

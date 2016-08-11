@@ -1,17 +1,17 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/bunny.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/bunny.png");
 
 // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
 // create some sprites
 var sprites = [];
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 
 var num = 10;
 for(var i = 0; i < num; i++) {
-    var sprite = new Text(render.context);
+    var sprite = new zen.Text(render.context);
     // sprite.text = "1234,TEST";
     sprite.text = "中文";
     sprite.fontSize = 30;
@@ -29,7 +29,7 @@ for(var i = 0; i < num; i++) {
 console.log("render object number:", num)
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 var count = 0;

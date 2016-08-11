@@ -1,166 +1,173 @@
-/**
- * DisplayObject Class
- * base class of all display objects
- * inherit from EventDispatcher, so display object can dispatcher event
- **/
-var DisplayObject = function() {
+(function() {
 
-    DisplayObject.superClass.constructor.call(this);
+    var BLEND_MODE = zen.BLEND_MODE;
 
-    // type of this display object
-    // typeof DISPLAY_TYPE
-    this.type = null;
+    /**
+     * DisplayObject Class
+     * base class of all display objects
+     * inherit from EventDispatcher, so display object can dispatcher event
+     **/
+    var DisplayObject = function() {
 
-    // bla bla ...
-    this.x = 0;
-    this.y = 0;
-    this.rotation = 0;
-    this.scaleX = 1;
-    this.scaleY = 1;
-    this.anchorX = 0;
-    this.anchorY = 0;
+        DisplayObject.superClass.constructor.call(this);
 
-    // a 4x4 transform matrix
-    this.transform = new Matrix();
-    // used to cache parent transform
-    this.parentTransform = new Matrix();
+        // type of this display object
+        // typeof DISPLAY_TYPE
+        this.type = null;
 
-    this.width = 0;
-    this.height = 0;
+        // bla bla ...
+        this.x = 0;
+        this.y = 0;
+        this.rotation = 0;
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.anchorX = 0;
+        this.anchorY = 0;
 
-    this.filters = [];
+        // a 4x4 transform matrix
+        this.transform = new zen.Matrix();
+        // used to cache parent transform
+        this.parentTransform = new zen.Matrix();
 
-    this.blend = BLEND_MODE.SOURCE_OVER;
+        this.width = 0;
+        this.height = 0;
 
-    this.mask = null;
+        this.filters = [];
 
-    this._contentBounds = new Rectangle();
+        this.blend = BLEND_MODE.SOURCE_OVER;
 
-    this.parent = null;
+        this.mask = null;
 
-    this.concatenatedMatrix = new Matrix();
+        this._contentBounds = new zen.Rectangle();
 
-    this.invertConcatenatedMatrix = new Matrix();
+        this.parent = null;
 
-}
+        this.concatenatedMatrix = new zen.Matrix();
 
-// inherit
-Util.inherit(DisplayObject, EventDispatcher);
+        this.invertConcatenatedMatrix = new zen.Matrix();
 
-/**
- * get coords data of this
- **/
-DisplayObject.prototype.getCoords = function() {
-
-}
-
-/**
- * get props data of this
- **/
-DisplayObject.prototype.getProps = function() {
-
-}
-
-/**
- * get indices data of this
- **/
-DisplayObject.prototype.getIndices = function() {
-
-};
-
-/**
- * get the transform matrix
- **/
-DisplayObject.prototype.getTransformMatrix = function() {
-    // one call is better
-    this.transform.setTransform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX * this.width, this.anchorY * this.height);
-
-    // this.transform.identify();
-    // this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
-    // this.transform.scale(this.scaleX, this.scaleY);
-    // this.transform.rotate(this.rotation);
-    // this.transform.translate(this.x, this.y);
-
-    return this.transform;
-}
-
-/**
- * get content bounds
- **/
-DisplayObject.prototype.getContentBounds = function() {
-    var bounds = this._contentBounds;
-
-    bounds.x = 0;
-    bounds.y = 0;
-    bounds.width = this.width;
-    bounds.height = this.height;
-
-    return this._contentBounds;
-}
-
-/**
- * hit test
- **/
-DisplayObject.prototype.hitTest = function(x, y) {
-    var bounds = this.getContentBounds();
-
-    var matrix = this.getInvertedConcatenatedMatrix();
-
-    // change global position to local
-    var localX = matrix.a * x + matrix.c * y + matrix.tx;
-    var localY = matrix.b * x + matrix.d * y + matrix.ty;
-
-    if(bounds.contains(localX, localY)) {
-        return this;
-    } else {
-        return null;
-    }
-}
-
-/**
- * dispatch a event (rewrite)
- **/
-DisplayObject.prototype.dispatchEvent = function(event) {
-    var list = this.getPropagationList();
-    for(var i = 0; i < list.length; i++) {
-        var object = list[i];
-        object.notifyListener(event);
-    }
-}
-
-/**
- * get event propagation list
- **/
-DisplayObject.prototype.getPropagationList = function() {
-    var list = [];
-    var target = this;
-    while (target) {
-        list.push(target);
-        target = target.parent;
-    }
-    return list;
-}
-
-/**
- * get concatenated matrix
- */
-DisplayObject.prototype.getConcatenatedMatrix = function() {
-    this.concatenatedMatrix.copy(this.getTransformMatrix());
-
-    if(this.parent) {
-        this.concatenatedMatrix.prepend(this.parent.getConcatenatedMatrix());
     }
 
-    return this.concatenatedMatrix;
-}
+    // inherit
+    zen.inherit(DisplayObject, zen.EventDispatcher);
 
-/**
- * get inverted concatenated matrix
- */
-DisplayObject.prototype.getInvertedConcatenatedMatrix = function() {
-    this.invertConcatenatedMatrix.copy(this.getConcatenatedMatrix());
+    /**
+     * get coords data of this
+     **/
+    DisplayObject.prototype.getCoords = function() {
 
-    this.invertConcatenatedMatrix.invert();
+    }
 
-    return this.invertConcatenatedMatrix;
-}
+    /**
+     * get props data of this
+     **/
+    DisplayObject.prototype.getProps = function() {
+
+    }
+
+    /**
+     * get indices data of this
+     **/
+    DisplayObject.prototype.getIndices = function() {
+
+    };
+
+    /**
+     * get the transform matrix
+     **/
+    DisplayObject.prototype.getTransformMatrix = function() {
+        // one call is better
+        this.transform.setTransform(this.x, this.y, this.scaleX, this.scaleY, this.rotation, this.anchorX * this.width, this.anchorY * this.height);
+
+        // this.transform.identify();
+        // this.transform.translate(-this.anchorX * this.width, -this.anchorY * this.height);
+        // this.transform.scale(this.scaleX, this.scaleY);
+        // this.transform.rotate(this.rotation);
+        // this.transform.translate(this.x, this.y);
+
+        return this.transform;
+    }
+
+    /**
+     * get content bounds
+     **/
+    DisplayObject.prototype.getContentBounds = function() {
+        var bounds = this._contentBounds;
+
+        bounds.x = 0;
+        bounds.y = 0;
+        bounds.width = this.width;
+        bounds.height = this.height;
+
+        return this._contentBounds;
+    }
+
+    /**
+     * hit test
+     **/
+    DisplayObject.prototype.hitTest = function(x, y) {
+        var bounds = this.getContentBounds();
+
+        var matrix = this.getInvertedConcatenatedMatrix();
+
+        // change global position to local
+        var localX = matrix.a * x + matrix.c * y + matrix.tx;
+        var localY = matrix.b * x + matrix.d * y + matrix.ty;
+
+        if(bounds.contains(localX, localY)) {
+            return this;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * dispatch a event (rewrite)
+     **/
+    DisplayObject.prototype.dispatchEvent = function(event) {
+        var list = this.getPropagationList();
+        for(var i = 0; i < list.length; i++) {
+            var object = list[i];
+            object.notifyListener(event);
+        }
+    }
+
+    /**
+     * get event propagation list
+     **/
+    DisplayObject.prototype.getPropagationList = function() {
+        var list = [];
+        var target = this;
+        while (target) {
+            list.push(target);
+            target = target.parent;
+        }
+        return list;
+    }
+
+    /**
+     * get concatenated matrix
+     */
+    DisplayObject.prototype.getConcatenatedMatrix = function() {
+        this.concatenatedMatrix.copy(this.getTransformMatrix());
+
+        if(this.parent) {
+            this.concatenatedMatrix.prepend(this.parent.getConcatenatedMatrix());
+        }
+
+        return this.concatenatedMatrix;
+    }
+
+    /**
+     * get inverted concatenated matrix
+     */
+    DisplayObject.prototype.getInvertedConcatenatedMatrix = function() {
+        this.invertConcatenatedMatrix.copy(this.getConcatenatedMatrix());
+
+        this.invertConcatenatedMatrix.invert();
+
+        return this.invertConcatenatedMatrix;
+    }
+
+    zen.DisplayObject = DisplayObject;
+})();

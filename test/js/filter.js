@@ -1,17 +1,17 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/bunny.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/bunny.png");
 
 // var renderTarget = new RenderTarget(render.context, render.width, render.height, false);
 
 // create some sprites
 var sprites = [];
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
-var filter = new ColorTransformFilter(render.context);
+var filter = new zen.ColorTransformFilter(render.context);
 var scale = 0.9;
 filter.grayScale(0.7);
 // filter.blackAndWhite();
@@ -24,14 +24,14 @@ filter.grayScale(0.7);
 // ];
 // filter.negative();
 // filter.desaturate();
-var blurXFilter = new BlurXFilter(render.context);
+var blurXFilter = new zen.BlurXFilter(render.context);
 blurXFilter.blurX = 2;
-var blurYFilter = new BlurYFilter(render.context);
+var blurYFilter = new zen.BlurYFilter(render.context);
 blurYFilter.blurY = 2;
 
 var num = 100;
 for(var i = 0; i < num; i++) {
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texture;
     // sprite.color = 0x475846;
     // sprite.filters = [blurXFilter, blurYFilter];
@@ -49,7 +49,7 @@ container.filters = [blurXFilter, blurYFilter, filter];
 console.log("render object number:", num)
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 var colorValue = 0;

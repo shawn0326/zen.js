@@ -1,15 +1,15 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/bg.jpeg");
+var texture = zen.Texture.fromSrc(render.context, "resources/bg.jpeg");
 
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 478;
 container.height = 319;
 
-var filter = new ColorTransformFilter(render.context);
+var filter = new zen.ColorTransformFilter(render.context);
 
-var sprite = new Sprite();
+var sprite = new zen.Sprite();
 sprite.texture = texture;
 sprite.x = 0;
 sprite.y = 300;
@@ -17,7 +17,7 @@ sprite.width = 478;
 sprite.height = 319;
 container.addChild(sprite);
 
-var text = new Text(render.context);
+var text = new zen.Text(render.context);
 text.y = 300;
 container.addChild(text);
 

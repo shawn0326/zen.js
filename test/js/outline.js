@@ -1,21 +1,21 @@
 // create a render
-var render = new Render(document.getElementById("canvas"));
+var render = new zen.Render(document.getElementById("canvas"));
 
-var texture = Texture.fromSrc(render.context, "resources/logo.png");
+var texture = zen.Texture.fromSrc(render.context, "resources/logo.png");
 
 // create some sprites
 var sprites = [];
-var container = new DisplayObjectContainer();
+var container = new zen.DisplayObjectContainer();
 container.width = 480;
 container.height = 800;
 
-var outlineFilter = new OutlineFilter(render.context);
+var outlineFilter = new zen.OutlineFilter(render.context);
 outlineFilter.thickness = 4;
 outlineFilter.color = 0x00ffff;
 
 var num = 1;
 for(var i = 0; i < num; i++) {
-    var sprite = new Sprite();
+    var sprite = new zen.Sprite();
     sprite.texture = texture;
     // sprite.color = 0x475846;
     sprite.filters = [outlineFilter];
@@ -33,7 +33,7 @@ for(var i = 0; i < num; i++) {
 console.log("render object number:", num)
 
 // fps
-var state = new State();
+var state = new zen.State();
 document.body.appendChild(state.getDom());
 
 var colorValue = 0;
