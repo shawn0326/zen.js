@@ -2,14 +2,13 @@ zen.js
 ================================================
 Current Version: NULL
 
- ![image](./test/resources/hi.png)
+![image](./test/resources/hi.png)
 
-简介
---
+Deadly fast HTML5 2D rendering engine that uses webGL without canvas fallback
 
-一个轻量WebGL 2D渲染器，并且不提供canvas回滚功能！
+变态快的HTML5 WebGL 2D渲染器，并且 **不提供canvas回滚功能** 哦～
 
-路线图
+RoadMap
 --
 * ~~text绘制(已完成)~~
 * graphics绘制
@@ -18,15 +17,17 @@ Current Version: NULL
 * ~~滤镜叠加功能(已完成)~~
 * ~~遮罩功能(已完成)~~
 
-联系我
+About Me
 --
-* 邮箱：shawn0326@163.com
-* 微博：[@谢帅shawn](http://weibo.com/shawn0326)
+* Blog: [Half Lab](http://www.halflab.me)
+* Email: shawn0326@163.com
+* Weibo: [@谢帅shawn](http://weibo.com/shawn0326)
 
-项目地址：
+Git:
 --
-* https://coding.net/u/shawn0326/p/webgl-examples/git
+* [github] https://github.com/shawn0326/zen.js
+* [coding] https://coding.net/u/shawn0326/p/zen.js/git
 
-测试地址：
+Demos:
 --
-* http://shawn0326.coding.me/webgl-examples/test
+* http://shawn0326.coding.me/zen.js/test
